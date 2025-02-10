@@ -5,7 +5,7 @@ description = "develop integration with ai apis and make some scraping"
 authors = [
     {name = "pachecosamuel",email = "pacheco.samuel@hotmail.com"}
 ]
-readme = "README.md"
+
 requires-python = "^3.10"
 dependencies = [
     "openai (>=1.61.1,<2.0.0)",
