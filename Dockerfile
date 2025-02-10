@@ -5,7 +5,7 @@ FROM python:3.11
 WORKDIR /src
 
 # Copia apenas os arquivos necessários para instalar as dependências
-COPY pyproject.toml poetry.lock /src/
+COPY pyproject.toml poetry.lock README.md /src/
 
 # Instala o Poetry manualmente
 RUN pip install poetry
