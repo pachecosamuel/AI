@@ -2,10 +2,10 @@
 FROM python:3.11
 
 # Define o diretório de trabalho
-WORKDIR /app  # Melhor usar "/app" para evitar confusões
+WORKDIR /src 
 
 # Copia apenas os arquivos necessários para instalar as dependências
-COPY pyproject.toml poetry.lock /app/
+COPY pyproject.toml poetry.lock /src/
 
 # Instala o Poetry manualmente
 RUN pip install poetry
@@ -17,7 +17,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-root --no-interaction --no-ansi
 
 # Agora copia o restante dos arquivos
-COPY . /app
+COPY . /src
 
 # Expõe a porta 8000 para a API
 EXPOSE 8000
