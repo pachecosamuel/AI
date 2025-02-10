@@ -23,7 +23,7 @@ COPY . /src
 EXPOSE 8000
 
 # Comando para rodar a API corretamente
-CMD ["poetry", "run", "python", "src.main.py"]
+CMD ["poetry", "run", "python", "main.py"]
 # CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 
