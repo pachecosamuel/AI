@@ -14,7 +14,7 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false
 
 # Instala as dependências do projeto antes de copiar o restante
-RUN poetry install --only main --no-interaction --no-ansi
+RUN poetry install --only main --no-root --no-interaction --no-ansi
 
 # Agora copia o restante dos arquivos
 COPY . /src
