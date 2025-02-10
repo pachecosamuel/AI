@@ -19,13 +19,13 @@ RUN poetry install --only main --no-root --no-interaction --no-ansi
 # Agora copia o restante dos arquivos
 COPY . /src
 
+# **DEBUG: Verifica se os arquivos estão no lugar correto**
+RUN ls -R /src
+RUN if [ -f "/src/main.py" ]; then echo "main.py encontrado!"; else echo "main.py NÃO ENCONTRADO!"; fi
+RUN if [ -f "/src/request_ai/main.py" ]; then echo "request_ai/main.py encontrado!"; else echo "request_ai/main.py NÃO ENCONTRADO!"; fi
+
 # Expõe a porta 8000 para a API
 EXPOSE 8000
 
-# Comando para rodar a API corretamente
-CMD ["poetry", "run", "python", "main.py"]
-# CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-
-
-# CMD ["poetry", "run", "python", "uvicorn", "request_ai.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# **Correção do CMD: Chama o caminho correto do main.py**
+CMD ["poetry", "run", "python", "request_ai/main.py"]
