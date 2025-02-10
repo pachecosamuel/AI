@@ -10,8 +10,11 @@ COPY pyproject.toml poetry.lock /src/
 # Instala o Poetry manualmente
 RUN pip install poetry
 
+# Configura o Poetry para criar o ambiente virtual dentro do container
+RUN poetry config virtualenvs.create false
+
 # Instala as dependências do projeto antes de copiar o restante
-RUN poetry install --no-dev --no-interaction --no-ansi
+RUN poetry install --only main --no-interaction --no-ansi
 
 # Agora copia o restante dos arquivos
 COPY . /src
