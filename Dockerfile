@@ -2,10 +2,10 @@
 FROM python:3.11
 
 # Define o diretório de trabalho
-WORKDIR /src
+WORKDIR /app  # Melhor usar "/app" para evitar confusões
 
 # Copia apenas os arquivos necessários para instalar as dependências
-COPY pyproject.toml poetry.lock /src/
+COPY pyproject.toml poetry.lock /app/
 
 # Instala o Poetry manualmente
 RUN pip install poetry
@@ -17,12 +17,15 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --only main --no-root --no-interaction --no-ansi
 
 # Agora copia o restante dos arquivos
-COPY . /src
+COPY . /app
 
 # Expõe a porta 8000 para a API
 EXPOSE 8000
 
-# Comando para rodar a API
-CMD ["poetry", "run", "uvicorn", "request_ai.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Comando para rodar a API corretamente
+CMD ["poetry", "run", "python", "src/main.py"]
+# CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+
 # CMD ["poetry", "run", "python", "uvicorn", "request_ai.main:app", "--host", "0.0.0.0", "--port", "8000"]
-# CMD ["poetry", "run", "python", "request_ai/main.py"]
