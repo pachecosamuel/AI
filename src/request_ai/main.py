@@ -22,7 +22,7 @@ class PromptRequest(BaseModel):
 @app.post("/chat-body")
 async def chat(request: PromptRequest):
     """Recebe um prompt e retorna a resposta da IA."""
-    resposta = co.generate(prompt=request.prompt, max_tokens=100)
+    resposta = co.generate(prompt=request.prompt, max_tokens=1000)
     return {"resposta": resposta.generations[0].text.strip()}
     
 @app.post("/chat-parameter")
