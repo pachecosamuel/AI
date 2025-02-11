@@ -34,5 +34,13 @@ async def chat(prompt: str):
 # Roda a API com Uvicorn
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8080))  # Usa a porta definida pelo Railway
+
+    load_dotenv()
+    PORT = os.getenv("PORT")   
+
+    port = PORT  # Usa a porta definida pelo Railway
+    # port = int(os.getenv("PORT", 8080))  # Usa a porta definida pelo Railway
+
+    print(f"Rodando na porta: {port}")  # Debug para verificar se a porta está correta
+
     uvicorn.run(app, host="0.0.0.0", port=port)
