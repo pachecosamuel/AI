@@ -43,3 +43,4 @@ if __name__ == "__main__":
     print(f"Rodando na porta: {port}")  # Debug para verificar se a porta está correta
 
     uvicorn.run(app, host="0.0.0.0", port=port)
+  
