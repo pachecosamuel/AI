@@ -38,7 +38,8 @@ if __name__ == "__main__":
     load_dotenv()
     PORT = os.getenv("PORT")   
 
-    port = PORT  # Usa a porta definida pelo Railway
+    port = int(os.getenv("PORT", 8080))  # Converte para inteiro corretamente
+  # Usa a porta definida pelo Railway
     # port = int(os.getenv("PORT", 8080))  # Usa a porta definida pelo Railway
 
     print(f"Rodando na porta: {port}")  # Debug para verificar se a porta está correta
