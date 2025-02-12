@@ -19,11 +19,8 @@ COPY . /src
 # Instala as dependências do projeto após copiar todos os arquivos
 RUN poetry install --only main --no-root --no-interaction --no-ansi
 
-# **DEBUG: Lista os arquivos do diretório para verificar a estrutura**
-RUN ls -R /src | grep -E "main.py|request_ai"
-
 # Expõe a porta 8000 para a API
 EXPOSE 8000
 
 # Executa a aplicação apontando para o local correto de `main.py`
-CMD ["poetry", "run", "python", "src/request_ai/main.py"]
+CMD ["poetry", "run", "python", "src/main.py"]
