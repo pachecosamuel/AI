@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 from api.routes import router
-from config import PORT
+from src.utils.config import PORT
 
 app = FastAPI()
 
