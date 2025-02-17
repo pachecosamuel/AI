@@ -4,8 +4,8 @@ from typing import Annotated
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
-import jwt
-from jwt.exceptions import InvalidTokenError
+import jwt as pyjwt
+from jwt.exceptions import InvalidKeyError
 
 from models.request import PromptRequest
 from models.user import User
@@ -84,7 +84,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = pyjwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -103,12 +103,12 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = pyjwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except InvalidTokenError:
+    except InvalidKeyError:
         raise credentials_exception
     user = get_user(fake_users_db, username=token_data.username)
     if user is None:
