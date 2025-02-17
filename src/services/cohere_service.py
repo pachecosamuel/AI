@@ -1,5 +1,5 @@
 import cohere
-from src.utils.config import API_KEY
+from utils.config import API_KEY
 
 co = cohere.Client(api_key=API_KEY)
 

@@ -5,3 +5,4 @@ load_dotenv()
 
 API_KEY = os.getenv("COHERE_KEY")
 PORT = int(os.getenv("PORT", 8080))
+
