@@ -2,21 +2,18 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status, APIRouter
 from typing import Annotated
 from passlib.context import CryptContext
-from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
 import jwt as pyjwt
 from jwt.exceptions import InvalidKeyError
 
 from models.request import PromptRequest
-from models.user import User
+from models.user import User, UserInDB
+from models.token import Token, TokenData
 from utils.security import decode_access_token
 from services.cohere_service import generate_response
+from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 fake_users_db = {
     "johndoe": {
@@ -42,18 +39,6 @@ def fake_hash_password(password: str):
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-class UserInDB(User):
-    hashed_password: str
 
 
 def verify_password(plain_password, hashed_password):
