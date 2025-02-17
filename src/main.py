@@ -9,7 +9,5 @@ app = FastAPI()
 app.include_router(api_router)
 
 if __name__ == "__main__":
-    print(f"SECRET_KEY usada: {SECRET_KEY}")
-    print(f"Rodando na porta: {PORT}")  # Debug
     uvicorn.run(app, host="0.0.0.0", port=PORT)
 

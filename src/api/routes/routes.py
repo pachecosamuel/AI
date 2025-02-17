@@ -7,7 +7,7 @@ from models.user import User
 from models.request import PromptRequest
 from services.cohere_service import generate_response
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from utils.security import authenticate_user, create_access_token, get_current_active_user, fake_users_db
+from utils.security import authenticate_user, create_access_token, get_current_active_user
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ router = APIRouter()
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
