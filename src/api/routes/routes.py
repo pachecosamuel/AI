@@ -1,3 +1,4 @@
+# src/api/routes/routes.py
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status, APIRouter
 from typing import Annotated
@@ -9,7 +10,6 @@ from jwt.exceptions import InvalidKeyError
 from models.request import PromptRequest
 from models.user import User, UserInDB
 from models.token import Token, TokenData
-from utils.security import decode_access_token
 from services.cohere_service import generate_response
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
