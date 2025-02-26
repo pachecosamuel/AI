@@ -18,3 +18,4 @@ ADMIN_FULL_NAME = os.getenv("ADMIN_FULL_NAME")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 ADMIN_DISABLED = os.getenv("ADMIN_DISABLED") == "true"  # Converte para booleano
 
+FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")

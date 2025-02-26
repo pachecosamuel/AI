@@ -7,5 +7,7 @@ def test_firestore():
     for doc in docs:
         print(f"{doc.id} => {doc.to_dict()}")
 
-if __name__ == "__main__":
-    test_firestore()
+
+test_firestore()
+# if __name__ == "__main__":
+#     test_firestore()
