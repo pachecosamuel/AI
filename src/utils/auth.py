@@ -37,7 +37,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def authenticate_user(identifier: str, password: str) -> UserInDB | None:
+def authenticate_local_user(identifier: str, password: str) -> UserInDB | None:
     """Autentica um usuário verificando a senha."""
     user = get_user(identifier)
     if not user or not verify_password(password, user.hashed_password):

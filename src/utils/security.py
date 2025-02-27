@@ -21,16 +21,16 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # ------------------ Funções Auxiliares ------------------ #
 # Função para simular um banco de usuários, agora usando variáveis de ambiente
-def get_user(username: str):
-    if username == ADMIN_USERNAME:
-        return UserInDB(
-            username=ADMIN_USERNAME,
-            full_name=ADMIN_FULL_NAME,
-            email=ADMIN_EMAIL,
-            hashed_password=pwd_context.hash(ADMIN_PASSWORD),  # Hash da senha
-            disabled=ADMIN_DISABLED
-        )
-    return None
+# def get_user(username: str):
+#     if username == ADMIN_USERNAME:
+#         return UserInDB(
+#             username=ADMIN_USERNAME,
+#             full_name=ADMIN_FULL_NAME,
+#             email=ADMIN_EMAIL,
+#             hashed_password=pwd_context.hash(ADMIN_PASSWORD),  # Hash da senha
+#             disabled=ADMIN_DISABLED
+#         )
+#     return None
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -38,11 +38,11 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def authenticate_user(username: str, password: str):
-    user = get_user(username)
-    if not user or not verify_password(password, user.hashed_password):
-        return None
-    return user
+# def authenticate_user(username: str, password: str):
+#     user = get_user(username)
+#     if not user or not verify_password(password, user.hashed_password):
+#         return None
+#     return user
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()

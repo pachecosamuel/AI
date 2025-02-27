@@ -62,7 +62,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha informada corresponde ao hash armazenado."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def authenticate_user(identifier: str, password: str) -> dict | None:
+def authenticate_firebase_user(identifier: str, password: str) -> dict | None:
     """Autentica um usuário verificando a senha."""
     user = get_user_by_email_or_username(identifier)
     
