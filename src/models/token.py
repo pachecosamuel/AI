@@ -1,5 +1,6 @@
 # src\models\token.py
 from pydantic import BaseModel
+from typing import Optional
 
 class Token(BaseModel):
     access_token: str
@@ -7,4 +8,4 @@ class Token(BaseModel):
     
     
 class TokenData(BaseModel):
-    username: str | None = None
+    email: Optional[str] = None

@@ -1,12 +1,12 @@
 # src\models\user.py
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    password: str
-    disabled: bool | None = True
+    username: Optional[str] = None
+    email: EmailStr
+    full_name: Optional[str] = None
+    disabled: bool = False
 
 class UserInDB(User):
-    hashed_password: str
+    password: str
