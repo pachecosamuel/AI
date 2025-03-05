@@ -4,11 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
 
-print("PRIVATE KEY (direto do os.getenv):", repr(os.getenv("FIREBASE_PRIVATE_KEY")))
-
-# Teste para ver se a variável foi carregada
-print(repr(os.getenv("FIREBASE_PRIVATE_KEY")))
-
 API_KEY = os.getenv("COHERE_KEY")
 PORT = int(os.getenv("PORT", 8080))
 

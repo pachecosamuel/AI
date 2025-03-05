@@ -3,19 +3,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from models.token import Token
-from models.user import User
 from models.request import PromptRequest
 from services.cohere_service import generate_response
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from utils.auth import create_access_token, get_current_active_user, authenticate_user
 from utils.firebase import create_user
 from utils.security import get_password_hash
+from models.user import User, UserInDB
 
 router = APIRouter()
 
-
 @router.post("/register")
-async def register_user(user: User):
+async def register_user(user: UserInDB):
     """
     Registra um novo usuário no Firestore.
     """

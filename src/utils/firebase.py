@@ -5,21 +5,6 @@ from utils.config import FIREBASE_CREDENTIALS
 # Inicializando Firestore
 db: Client = firestore.Client.from_service_account_info(FIREBASE_CREDENTIALS)
 
-def get_user(identifier: str) -> dict | None:
-    """Busca um usuário pelo e-mail ou username no Firestore."""
-    users_ref = db.collection("users")
-
-    # Busca pelo email
-    query_email = users_ref.where("email", "==", identifier).limit(1).get()
-    if query_email:
-        return query_email[0].to_dict()
-
-    # Busca pelo username
-    query_username = users_ref.where("username", "==", identifier).limit(1).get()
-    if query_username:
-        return query_username[0].to_dict()
-
-    return None
 
 def create_user(username: str, email: str, hashed_password: str, full_name: str = "") -> dict:
     """Cria um novo usuário no Firestore."""
@@ -40,3 +25,20 @@ def create_user(username: str, email: str, hashed_password: str, full_name: str 
     new_user_ref = users_ref.add(user_data)
     
     return {"id": new_user_ref[1].id, **user_data}
+
+
+def get_user(identifier: str) -> dict | None:
+    """Busca um usuário pelo e-mail ou username no Firestore."""
+    users_ref = db.collection("users")
+
+    # Busca pelo email
+    query_email = users_ref.where("email", "==", identifier).limit(1).get()
+    if query_email:
+        return query_email[0].to_dict()
+
+    # Busca pelo username
+    query_username = users_ref.where("username", "==", identifier).limit(1).get()
+    if query_username:
+        return query_username[0].to_dict()
+
+    return None

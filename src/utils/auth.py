@@ -18,6 +18,9 @@ def authenticate_user(identifier: str, password: str) -> UserInDB | None:
     if not user_data or not verify_password(password, user_data["hashed_password"]):
         return None
     
+    # Adiciona o campo 'password' ao instanciar o modelo UserInDB, mas usando hashed_password
+    user_data['password'] = user_data.get("hashed_password")  # Adiciona a senha ao campo password
+    
     return UserInDB(**user_data)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
