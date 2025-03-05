@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import cohere
 import os
 from dotenv import load_dotenv
+import uvicorn
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -33,5 +34,4 @@ async def chat(prompt: str):
 
 # Roda a API com Uvicorn
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

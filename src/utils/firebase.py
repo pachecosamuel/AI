@@ -3,7 +3,7 @@ from google.cloud.firestore import Client
 from utils.config import FIREBASE_CREDENTIALS
 
 # Inicializando Firestore
-db: Client = firestore.Client.from_service_account_json(FIREBASE_CREDENTIALS)
+db: Client = firestore.Client.from_service_account_info(FIREBASE_CREDENTIALS)
 
 def get_user(identifier: str) -> dict | None:
     """Busca um usuário pelo e-mail ou username no Firestore."""

@@ -29,7 +29,7 @@ FIREBASE_CREDENTIALS = {
     "type": os.getenv("FIREBASE_TYPE", ""),
     "project_id": os.getenv("FIREBASE_PROJECT_ID", ""),
     "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID", ""),
-    "private_key": os.getenv("FIREBASE_PRIVATE_KEY", ""),  # Corrige quebras de linha
+    "private_key": os.getenv("FIREBASE_PRIVATE_KEY", "").replace(r'\n', '\n'),  # Corrige quebras de linha
     "client_email": os.getenv("FIREBASE_CLIENT_EMAIL", ""),
     "client_id": os.getenv("FIREBASE_CLIENT_ID", ""),
     "auth_uri": os.getenv("FIREBASE_AUTH_URI", ""),
@@ -39,31 +39,14 @@ FIREBASE_CREDENTIALS = {
     "universe_domain": os.getenv("FIREBASE_UNIVERSE_DOMAIN", "")
 }
 
-print("PRIVATE KEY:", repr(os.getenv("FIREBASE_PRIVATE_KEY")))
-print("PROJECT ID:", repr(os.getenv("FIREBASE_PROJECT_ID")))
-
-
-print("FIREBASE_CREDENTIALS carregadas:")
-for key, value in FIREBASE_CREDENTIALS.items():
-    print(f"{key}: {'OK' if value else 'MISSING'}")
 
 # Verificando se os dados essenciais foram carregados corretamente
 if not FIREBASE_CREDENTIALS["private_key"] or not FIREBASE_CREDENTIALS["client_email"]:
     raise ValueError("Credenciais do Firebase estão incompletas. Verifique suas variáveis de ambiente.")
 
-# Certificando que as credenciais foram carregadas corretamente
-# if not FIREBASE_CREDENTIALS.get("private_key") or not FIREBASE_CREDENTIALS.get("client_email"):
-#     raise ValueError("Credenciais do Firebase estão incompletas. Verifique suas variáveis de ambiente.")
 
-print("Firebase Credentials carregadas com sucesso!")  # Debug opcional
+print("Firebase Credentials carregadas com sucesso!")  
 
-# if FIREBASE_CREDENTIALS:
-#     try:
-#         FIREBASE_CREDENTIALS = json.loads(FIREBASE_CREDENTIALS)
-#     except json.JSONDecodeError:
-#         raise ValueError("Erro ao carregar as credenciais do Firebase. Verifique o formato JSON.")
-# else:
-#     raise ValueError("FIREBASE_CREDENTIALS não está definida. Configure corretamente no ambiente.")
 
 
 
