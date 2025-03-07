@@ -1,3 +1,5 @@
+http://127.0.0.1:8080/docs
+
 docker run <imagem>                  # Executa um container baseado na imagem especificada
 docker run -it <imagem> bash         # Executa um container interativo com terminal bash
 docker run -d -p 8000:8000 <imagem>  # Executa um container em modo detached mapeando a porta 8000

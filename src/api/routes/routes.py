@@ -1,5 +1,5 @@
 # src/api/routes/routes.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from models.token import Token
@@ -10,8 +10,29 @@ from utils.auth import create_access_token, get_current_active_user, authenticat
 from utils.firebase import create_user
 from utils.security import get_password_hash
 from models.user import User, UserInDB
+from services.file_service import save_file
+from services.pdf_service import extract_text_from_pdf
 
 router = APIRouter()
+
+
+
+router = APIRouter()
+
+
+@router.get("/extract-text/")
+async def extract_text(file_path: str):
+    """Recebe um caminho de arquivo e retorna o texto extraído (somente PDFs)."""
+    text = extract_text_from_pdf(file_path)
+    return {"message": "Texto extraído com sucesso!", "text": text}
+
+
+@router.post("/upload-file/")
+async def upload_file(file: UploadFile = File(...)):
+    """Recebe um arquivo PDF e o salva no servidor."""
+    file_path = save_file(file)
+    return {"message": "Arquivo recebido com sucesso!", "file_path": file_path}
+
 
 @router.post("/register")
 async def register_user(user: UserInDB):
