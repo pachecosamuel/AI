@@ -19,14 +19,14 @@ router = APIRouter()
 @router.get("/extract-text/")
 async def extract_text(file_path: str):
     """Recebe um caminho de arquivo e retorna o texto extraído (somente PDFs)."""
-    text = extract_text_from_pdf_safe(file_path)
+    text = extract_text_from_pdf_future(file_path)
     return {"message": "Texto extraído com sucesso!", "text": text}
 
 
 @router.post("/upload-file/")
 async def upload_file(file: UploadFile = File(...)):
     """Recebe um arquivo PDF e o salva no servidor."""
-    file_path = save_file_safe(file)
+    file_path = save_file_future(file)
     return {"message": "Arquivo recebido com sucesso!", "file_path": file_path}
 
 
