@@ -1,59 +1,35 @@
 import smtplib, ssl
 from email.mime.text import MIMEText
-from utils.config import EMAIL_DESTINATION, EMAIL_SENDER, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, EMAIL_SENDER, EMAIL_DESTINATION
+from email.mime.multipart import MIMEMultipart
+from utils.config import EMAIL_SENDER, EMAIL_DESTINATION, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 
-port = SMTP_PORT  # For SSL
-smtp_server = SMTP_SERVER
-smtp_sender = EMAIL_SENDER
-smpt_destination = EMAIL_DESTINATION
-password = SMTP_PASSWORD
-message = """\
-Subject: Hi there
+def send_email(subject, body, recipients):
+    """Envia um e-mail usando SMTP."""
+    sender = EMAIL_SENDER
+    password = SMTP_PASSWORD
 
-This message is sent from Python."""
+    # Criar a mensagem de e-mail
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipients)
+    msg['Subject'] = subject
 
-# Create a secure SSL context
-context = ssl.create_default_context()
+    # Adicionar corpo do e-mail
+    msg.attach(MIMEText(body, "html"))  # Suporte para HTML
 
-with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-    server.login(smtp_sender, password)
-    server.sendmail(smtp_sender, smpt_destination, message)
+    try:
+        # Criar contexto SSL
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as server:
+            server.login(sender, password)
+            server.sendmail(sender, recipients, msg.as_string())
+        print("✅ E-mail enviado com sucesso!")
+    except Exception as e:
+        print(f"❌ Erro ao enviar e-mail: {e}")
 
-
-
-
-
-# # Definição dos dados
-# subject = "Assunto do Email"
-# body = "Este é o corpo da mensagem de texto"
-# sender = EMAIL_SENDER
-# recipients = [EMAIL_DESTINATION]
-# password = SMTP_PASSWORD
-
-# send_email(subject, body, sender, recipients, password)
-# def send_email(subject, body, sender, recipients, password):
-#     msg = MIMEText(body)
-#     msg['Subject'] = subject
-#     msg['From'] = sender
-#     msg['To'] = ', '.join(recipients)
-
-#     # Cria o contexto SSL para criptografia segura
-#     context = ssl.create_default_context()
-
-#     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp_server:
-#         smtp_server.ehlo()
-#         smtp_server.starttls(context=context)  # Usa o contexto SSL
-#         smtp_server.ehlo()
-#         smtp_server.login(sender, password)
-#         smtp_server.sendmail(sender, recipients, msg.as_string())
-
-#     print("Mensagem enviada!")
-
-# # Definição dos dados
-# subject = "Assunto do Email"
-# body = "Este é o corpo da mensagem de texto"
-# sender = EMAIL_SENDER
-# recipients = [EMAIL_DESTINATION]
-# password = SMTP_PASSWORD
-
-# send_email(subject, body, sender, recipients, password)
+# Testando envio
+send_email(
+    subject="Teste de E-mail",
+    body="<h1>Olá!</h1><p>Este é um e-mail de teste enviado pelo Python.</p>",
+    recipients=[EMAIL_DESTINATION]
+)
