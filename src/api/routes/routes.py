@@ -12,8 +12,18 @@ from utils.security import get_password_hash
 from models.user import User, UserInDB
 from services.file_service import save_file
 from services.pdf_service import extract_text_from_pdf
+from services.email_service import send_email
+
 
 router = APIRouter()
+
+@router.post("/send-email/")
+def send_email_route(to_email: str, subject: str, body: str):
+    result = send_email(to_email, subject, body)
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    return result
+
 
 
 @router.get("/extract-text/")

@@ -19,6 +19,16 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 ADMIN_DISABLED = os.getenv("ADMIN_DISABLED", "false").lower() == "true"
 
 
+# EMAIL
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.mailtrap.io")  # Servidor SMTP
+SMTP_PORT = int(os.getenv("SMTP_PORT", 2525))  # Porta padrão do Mailtrap
+SMTP_USERNAME = os.getenv("SMTP_USERNAME")  # Usuário SMTP
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # Senha SMTP
+EMAIL_SENDER = os.getenv("EMAIL_SENDER", "noreply@example.com")  # E-mail do remetente[]
+EMAIL_DESTINATION = os.getenv("EMAIL_DESTINATION")
+
+
+
 # Reconstruindo as credenciais do Firebase a partir das variáveis de ambiente
 FIREBASE_CREDENTIALS = {
     "type": os.getenv("FIREBASE_TYPE", ""),
