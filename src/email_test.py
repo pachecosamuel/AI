@@ -1,7 +1,7 @@
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from utils.config import EMAIL_SENDER, EMAIL_DESTINATION, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from utils.config import EMAIL_SENDER, EMAIL_DESTINATION, SMTP_SERVER, SMTP_PORT, SMTP_PASSWORD
 
 def send_email(subject, body, recipients):
     """Envia um e-mail usando SMTP."""
