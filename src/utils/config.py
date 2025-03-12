@@ -50,8 +50,6 @@ if not FIREBASE_CREDENTIALS["private_key"] or not FIREBASE_CREDENTIALS["client_e
     raise ValueError("Credenciais do Firebase estão incompletas. Verifique suas variáveis de ambiente.")
 
 
-print("Firebase Credentials carregadas com sucesso!")  
-
 
 
 
