@@ -1,3 +1,4 @@
+# src\utils\firebase.py
 from google.cloud import firestore
 from google.cloud.firestore import Client
 from utils.config import FIREBASE_CREDENTIALS
