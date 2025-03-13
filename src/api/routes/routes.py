@@ -2,14 +2,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
+
 from models.token import Token
 from models.request import PromptRequest
-from services.cohere_service import generate_response
+from models.user import User, UserInDB
+from models.email import EmailRequest
+
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from utils.auth import create_access_token, get_current_active_user, authenticate_user
 from utils.firebase import create_user
 from utils.security import get_password_hash
-from models.user import User, UserInDB
+
+from services.cohere_service import generate_response
 from services.file_service import save_file
 from services.pdf_service import extract_text_from_pdf
 from services.email_service import send_email
@@ -17,13 +21,13 @@ from services.email_service import send_email
 
 router = APIRouter()
 
-@router.post("/send-email/")
-def send_email_route(to_email: str, subject: str, body: str):
-    result = send_email(to_email, subject, body)
-    if "error" in result:
-        raise HTTPException(status_code=500, detail=result["error"])
-    return result
-
+@router.post("/send-email")
+def send_email_endpoint(request: EmailRequest):
+    try:
+        response = send_email(request.subject, request.body, request.recipients)
+        return {"success": True, "message": response["message"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/extract-text/")
@@ -79,14 +83,6 @@ async def login_for_access_token(
     )
 
     return Token(access_token=access_token, token_type="bearer")
-
-
-@router.get("/protected")
-async def protected_route(current_user: User = Depends(get_current_active_user)):
-    """
-    Endpoint protegido que requer autenticação.
-    """
-    return {"message": "Você acessou um endpoint protegido!", "user": current_user}
 
 
 @router.post("/chat-body")

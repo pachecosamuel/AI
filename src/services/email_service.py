@@ -1,22 +1,33 @@
-import smtplib
+import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from utils.config import SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, EMAIL_SENDER
+from utils.config import EMAIL_SENDER, SMTP_SERVER, SMTP_PORT, SMTP_PASSWORD
 
-def send_email(to_email: str, subject: str, body: str):
+
+def send_email(subject, body, recipients):
+    """Envia um e-mail usando SMTP."""
+    sender = EMAIL_SENDER
+    password = SMTP_PASSWORD
+
+    # Criar a mensagem de e-mail
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipients)
+    msg['Subject'] = subject
+
+    # Adicionar corpo do e-mail
+    msg.attach(MIMEText(body, "html"))  # Suporte para HTML
+
     try:
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_SENDER
-        msg["To"] = to_email
-        msg["Subject"] = subject
-
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.sendmail(EMAIL_SENDER, to_email, msg.as_string())
-
-        return {"message": "E-mail enviado com sucesso!"}
+        # Criar contexto SSL
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as server:
+            server.login(sender, password)
+            server.sendmail(sender, recipients, msg.as_string())
+        print("✅ E-mail enviado com sucesso!")
+        return {"message": "✅ E-mail enviado com sucesso!"}
+        
     except Exception as e:
-        return {"error": f"Erro ao enviar e-mail: {str(e)}"}
+        print(f"❌ Erro ao enviar e-mail: {e}")
+        raise RuntimeError(f"Erro ao enviar e-mail: {e}")
+
