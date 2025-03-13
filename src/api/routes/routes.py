@@ -1,6 +1,6 @@
 # src/api/routes/routes.py
 from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, UploadFile, File
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from datetime import timedelta
 
 from models.token import Token
@@ -21,6 +21,16 @@ from services.email_service import send_email
 
 router = APIRouter()
 
+security = HTTPBearer()
+
+@router.get("/hello_world", dependencies=[Depends(security)])
+def say_hello(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        print("Oi, mundo!")
+        return {"success": True, "message": "sucess"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.get("/hello")
 def say_hello(current_user: UserInDB = Depends(get_current_active_user)):
     try:
