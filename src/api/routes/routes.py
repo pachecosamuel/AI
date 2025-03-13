@@ -21,6 +21,14 @@ from services.email_service import send_email
 
 router = APIRouter()
 
+@router.get("/hello")
+def say_hello(current_user: UserInDB = Depends(get_current_active_user)):
+    try:
+        print("Oi, mundo!")
+        return {"success": True, "message": "sucess"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/send-email")
 def send_email_endpoint(request: EmailRequest):
     try:
