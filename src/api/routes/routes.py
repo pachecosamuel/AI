@@ -23,7 +23,7 @@ router = APIRouter()
 
 security = HTTPBearer()
 
-@router.get("/hello_world", dependencies=[Depends(get_current_active_user)])
+@router.get("/hello_world", dependencies=[Depends(get_current_active_user)], tags=["Testes"])
 def say_hello():
     try:
         print("Oi, mundo!")
@@ -32,7 +32,21 @@ def say_hello():
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.post("/send-email", dependencies=[Depends(get_current_active_user)])
+@router.get("/extract-text/", dependencies=[Depends(get_current_active_user)], tags=["Services"])
+async def extract_text(file_path: str):
+    """Recebe um caminho de arquivo e retorna o texto extraído (somente PDFs)."""
+    text = extract_text_from_pdf(file_path)
+    return {"message": "Texto extraído com sucesso!", "text": text}
+
+
+@router.post("/upload-file/", dependencies=[Depends(get_current_active_user)], tags=["Services"])
+async def upload_file(file: UploadFile = File(...)):
+    """Recebe um arquivo PDF e o salva no servidor."""
+    file_path = save_file(file)
+    return {"message": "Arquivo recebido com sucesso!", "file_path": file_path}
+
+
+@router.post("/send-email", dependencies=[Depends(get_current_active_user)], tags=["Services"])
 def send_email_endpoint(request: EmailRequest):
     try:
         response = send_email(request.subject, request.body, request.recipients)
@@ -41,21 +55,24 @@ def send_email_endpoint(request: EmailRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/extract-text/", dependencies=[Depends(get_current_active_user)])
-async def extract_text(file_path: str):
-    """Recebe um caminho de arquivo e retorna o texto extraído (somente PDFs)."""
-    text = extract_text_from_pdf(file_path)
-    return {"message": "Texto extraído com sucesso!", "text": text}
+@router.post("/chat-body", dependencies=[Depends(get_current_active_user)], tags=["Services"])
+async def chat_body(request: PromptRequest):
+    """
+    Recebe um prompt e retorna a resposta da IA.
+    """
+    return {"resposta": generate_response(request.prompt, max_tokens=1000)}
 
 
-@router.post("/upload-file/", dependencies=[Depends(get_current_active_user)])
-async def upload_file(file: UploadFile = File(...)):
-    """Recebe um arquivo PDF e o salva no servidor."""
-    file_path = save_file(file)
-    return {"message": "Arquivo recebido com sucesso!", "file_path": file_path}
+@router.post("/chat-parameter", dependencies=[Depends(get_current_active_user)], tags=["Services"])
+async def chat_parameter(prompt: str):
+    """
+    Recebe um prompt como parâmetro e retorna a resposta da IA.
+    """
+    return {"resposta": generate_response(prompt, max_tokens=100)}
 
 
-@router.post("/register", dependencies=[Depends(get_current_active_user)])
+
+@router.post("/register", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
 async def register_user(user: UserInDB):
     """
     Registra um novo usuário no Firestore.
@@ -73,7 +90,7 @@ async def register_user(user: UserInDB):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/login", dependencies=[Depends(get_current_active_user)])
+@router.post("/login", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
@@ -95,18 +112,3 @@ async def login_for_access_token(
 
     return Token(access_token=access_token, token_type="bearer")
 
-
-@router.post("/chat-body", dependencies=[Depends(get_current_active_user)])
-async def chat_body(request: PromptRequest):
-    """
-    Recebe um prompt e retorna a resposta da IA.
-    """
-    return {"resposta": generate_response(request.prompt, max_tokens=1000)}
-
-
-@router.post("/chat-parameter", dependencies=[Depends(get_current_active_user)])
-async def chat_parameter(prompt: str):
-    """
-    Recebe um prompt como parâmetro e retorna a resposta da IA.
-    """
-    return {"resposta": generate_response(prompt, max_tokens=100)}
