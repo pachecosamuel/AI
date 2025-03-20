@@ -90,7 +90,7 @@ async def register_user(user: UserInDB):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/login", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
+@router.post("/login", tags=["Cadastro, login e autenticação"])
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
