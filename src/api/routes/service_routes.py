@@ -1,4 +1,3 @@
-# src/api/routes/routes.py
 from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from datetime import timedelta
@@ -20,8 +19,9 @@ from services.email_service import send_email
 
 
 router = APIRouter()
-
 security = HTTPBearer()
+
+
 
 @router.get("/hello_world", dependencies=[Depends(get_current_active_user)], tags=["Testes"])
 def say_hello():
@@ -69,46 +69,3 @@ async def chat_parameter(prompt: str):
     Recebe um prompt como parâmetro e retorna a resposta da IA.
     """
     return {"resposta": generate_response(prompt, max_tokens=100)}
-
-
-
-@router.post("/register", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
-async def register_user(user: UserInDB):
-    """
-    Registra um novo usuário no Firestore.
-    """
-    try:
-        hashed_password = get_password_hash(user.password)
-        new_user = create_user(
-            username=user.username,
-            email=user.email,
-            hashed_password=hashed_password,  # Senha já hashada
-            full_name=user.full_name
-        )
-        return {"message": "Usuário criado com sucesso!", "user_id": new_user["id"]}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/login", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-) -> Token:
-    """
-    Realiza login do usuário e retorna um token de acesso.
-    """
-    user = authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuário ou senha incorretos",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-
-    return Token(access_token=access_token, token_type="bearer")
-
