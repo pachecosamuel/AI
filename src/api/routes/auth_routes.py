@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer
 from datetime import timedelta
 from models.token import Token
 from models.user import UserInDB
 
+from utils.rate_limiter import rate_limiter, failed_attempts, reset_attempts  
 from utils.firebase import create_user
-
 from utils.security import get_password_hash
 from utils.auth import authenticate_user, create_access_token
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -18,6 +18,7 @@ security = HTTPBearer()
 @router.post("/login")
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
+    _=Depends(rate_limiter)
 ) -> Token:
     """
     Realiza login do usuário e retorna um token de acesso.
@@ -29,7 +30,7 @@ async def login_for_access_token(
             detail="Usuário ou senha incorretos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
