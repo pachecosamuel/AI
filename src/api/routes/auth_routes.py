@@ -11,7 +11,7 @@ from utils.auth import authenticate_user, create_access_token
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from utils.auth import create_access_token, get_current_active_user, authenticate_user
 
-router = APIRouter(tags=["Cadastro, login e autenticação"])
+router = APIRouter(tags=["Register, login and authentication"])
 security = HTTPBearer()
 
 
@@ -38,7 +38,7 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.post("/register", dependencies=[Depends(get_current_active_user)], tags=["Cadastro, login e autenticação"])
+@router.post("/register", dependencies=[Depends(get_current_active_user)])
 async def register_user(user: UserInDB):
     """
     Registra um novo usuário no Firestore.
