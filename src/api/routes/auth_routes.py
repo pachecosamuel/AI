@@ -4,7 +4,7 @@ from datetime import timedelta
 from models.token import Token
 from models.user import UserInDB
 
-from utils.rate_limiter import rate_limiter, failed_attempts, reset_attempts  
+from utils.rate_limiter import rate_limiter, reset_attempts  
 from utils.firebase import create_user
 from utils.security import get_password_hash
 from utils.auth import authenticate_user, create_access_token
@@ -17,6 +17,7 @@ security = HTTPBearer()
 
 @router.post("/login")
 async def login_for_access_token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     _=Depends(rate_limiter)
 ) -> Token:
@@ -31,6 +32,10 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Resetar tentativas de login no Firestore após sucesso
+    client_ip = request.client.host
+    reset_attempts(client_ip)
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
