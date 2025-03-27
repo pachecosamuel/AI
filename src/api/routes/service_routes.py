@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, UploadFile, File
-from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
-from datetime import timedelta
+from fastapi.security import HTTPBearer
 
-from models.token import Token
 from models.request import PromptRequest
-from models.user import User, UserInDB
 from models.email import EmailRequest
 
-from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from utils.auth import create_access_token, get_current_active_user, authenticate_user
-from utils.firebase import create_user
-from utils.security import get_password_hash
-
+from utils.auth import get_current_active_user
 from services.cohere_service import generate_response
 from services.file_service import save_file
 from services.pdf_service import extract_text_from_pdf
@@ -20,8 +13,6 @@ from services.email_service import send_email
 
 router = APIRouter(tags=["Services"])
 security = HTTPBearer()
-
-
 
 @router.get("/hello_world", dependencies=[Depends(get_current_active_user)], tags=["Test"])
 def say_hello():
