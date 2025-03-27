@@ -1,0 +1,42 @@
+Próximos Passos para Evoluir a Base
+Aqui estão algumas direções que podem fortalecer seu projeto:
+
+🔒 Segurança:
+
+Melhorar autenticação e autorização (OAuth2, JWT com refresh token).
+
+Rate limiting mais refinado, com suporte a diferentes estratégias.
+
+Auditoria e logging de acessos sensíveis.
+
+Criptografia de dados sensíveis, caso necessário.
+
+⚡ Escalabilidade:
+
+Trocar Firestore por um banco relacional ou NoSQL mais robusto?
+
+Melhorar a arquitetura para suportar múltiplas instâncias (ex: cache para reduzir chamadas ao banco).
+
+Criar workers para processamentos assíncronos pesados (ex: Celery, Redis, ou Filas).
+
+🛠️ Observabilidade & Manutenção:
+
+Adicionar métricas de performance (Prometheus + Grafana, por exemplo).
+
+Melhorar logs para facilitar debugging em produção.
+
+Implementar testes automatizados mais robustos (testes de carga, integração e segurança).
+
+🚀 Infraestrutura & Deploy:
+
+Explorar outras opções de deploy além do Railway (Deta, Fly.io, VPS, Kubernetes).
+
+Criar um pipeline CI/CD para garantir builds estáveis.
+
+💡 Pensando no Futuro:
+
+Se for criar um micro SaaS, pode ser interessante já estruturar planos de assinatura e billing.
+
+Criar um painel administrativo para gerenciar usuários e estatísticas.
+
+O que acha dessas sugestões? Alguma dessas áreas faz mais sentido pra você atacar primeiro?
