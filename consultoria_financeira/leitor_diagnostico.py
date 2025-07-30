@@ -21,9 +21,12 @@ def carregar_dados(caminho_csv: str) -> list[dict]:
 
 if __name__ == "__main__":
     caminho = "docs/diagnostico_financeiro_samuel.csv"
-    dados = carregar_dados(caminho)
+    
+    mentorados = carregar_dados(caminho)
+    mentor_padronizado = transformar_resposta_bruta(mentorados[0])
 
-    print(f"{len(dados)} mentorado(s) carregado(s).\n")
+    print(f"{len(mentorados)} mentorado(s) carregado(s).\n")
+
     print("Exemplo:")
-    for chave, valor in dados[0].items():
+    for chave, valor in mentor_padronizado.items():
         print(f"{chave}: {valor}")
