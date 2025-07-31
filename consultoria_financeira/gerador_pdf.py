@@ -2,7 +2,9 @@
 
 from fpdf import FPDF
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 import os
+from matplotlib.ticker import StrMethodFormatter
 
 # Convertendo cor hex para RGB (f3fffa → 243, 255, 250)
 BACKGROUND_COLOR = (243, 255, 250)
@@ -56,6 +58,7 @@ class PlanoFinanceiroPDF(FPDF):
         fixos = dados['despesas_fixas']
         variaveis = dados['despesas_variaveis']
         investido_mes = dados.get('valor_investido_mes', 0)
+        investimento_total = dados.get('valor_investido', 0)
         reserva = dados.get('reserva_emergencia', 0)
         sobra = renda - (fixos + variaveis)
         percentual_investimento = (investido_mes / renda) * 100 if renda else 0
@@ -87,28 +90,75 @@ class PlanoFinanceiroPDF(FPDF):
             self.multi_cell(0, 8, f)
         self.ln(5)
 
-        # Dados brutos
-        self.set_font("Helvetica", "", 12)
+        # Valores básicos apresentados
         self.cell(0, 10, f"Renda mensal: R$ {renda:.2f}", ln=True)
         self.cell(0, 10, f"Gastos fixos: R$ {fixos:.2f}", ln=True)
         self.cell(0, 10, f"Gastos variáveis: R$ {variaveis:.2f}", ln=True)
         self.cell(0, 10, f"Investimento mensal: R$ {investido_mes:.2f}", ln=True)
         self.cell(0, 10, f"Reserva de emergência: R$ {reserva:.2f}", ln=True)
+        self.cell(0, 10, f"Investimentos totais acumulados: R$ {investimento_total:.2f}", ln=True)
+        self.ln(5)
 
-        # Gráfico barras: Distribuição real
-        categorias = ["Gastos Fixos", "Gastos Variáveis", "Investimento Mensal", "Reserva Emergência"]
-        valores = [fixos, variaveis, investido_mes, reserva]
+        # ---------- GRÁFICO 1: GASTOS MENSAL ----------
+        categorias_gasto = ["Gastos Fixos", "Gastos Variáveis"]
+        valores_gasto = [fixos, variaveis]
 
-        plt.figure(figsize=(6, 3))
-        plt.barh(categorias, valores, color=["#007bff", "#ff9900", "#28a745", "#6c757d"])
-        plt.xlabel("R$ Valor")
-        plt.title("Distribuição financeira atual")
+        plt.figure(figsize=(5, 3))
+        barras = plt.bar(categorias_gasto, valores_gasto, color=["#5DADE2", "#F5B041"])
+        plt.title("Distribuição de Gastos Mensais")
+        plt.ylabel("Valor (R$)")
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        plt.gca().yaxis.set_major_formatter(StrMethodFormatter('R$ {x:,.0f}'))
+
+        for bar in barras:
+            yval = bar.get_height()
+            if yval > 300:  # Limite para mostrar dentro da barra
+                plt.text(bar.get_x() + bar.get_width()/2, yval * 0.5, f"R$ {yval:,.0f}", ha='center', va='center', fontsize=10, color='white')
+            else:
+                plt.text(bar.get_x() + bar.get_width()/2, yval + 50, f"R$ {yval:,.0f}", ha='center', va='bottom', fontsize=10, color='black')
+
+
         plt.tight_layout()
-        img_grafico = "grafico_distribuicao_real.png"
-        plt.savefig(img_grafico)
+        img1 = "grafico_gastos_mensais.png"
+        plt.savefig(img1)
         plt.close()
-        self.image(img_grafico, x=30, w=150)
-        os.remove(img_grafico)
+        self.image(img1, x=30, w=150)
+        os.remove(img1)
+
+        self.ln(5)
+
+        # ---------- GRÁFICO 2: PATRIMÔNIO / RESERVA ----------
+        categorias_acumulacao = ["Investimento Mensal", "Reserva Emergência", "Investimentos Totais"]
+        valores_acumulacao = [investido_mes, reserva, investimento_total]
+
+        plt.figure(figsize=(5, 3))
+        barras2 = plt.bar(categorias_acumulacao, valores_acumulacao, color=["#58D68D", "#82E0AA", "#239B56"])
+        plt.title("Distribuição Patrimonial")
+        plt.ylabel("Valor (R$)")
+        plt.grid(True, axis='y', linestyle='-', alpha=0.7)
+        plt.gca().yaxis.set_major_formatter(ticker.StrMethodFormatter('R$ {x:,.0f}'))
+
+        for bar in barras2:
+            yval = bar.get_height()
+            offset = yval * 0.05
+            if yval > 10000:
+                plt.text(bar.get_x() + bar.get_width()/2, yval - offset*3, f"R$ {yval:,.0f}", 
+                        ha='center', va='bottom', fontsize=10, color='white')
+            else:
+                plt.text(bar.get_x() + bar.get_width()/2, yval + offset, f"R$ {yval:,.0f}", 
+                        ha='center', va='bottom', fontsize=10, color='black')
+
+
+
+        plt.tight_layout()
+        img2 = "grafico_acumulacao.png"
+        plt.savefig(img2)
+        plt.close()
+        self.image(img2, x=30, w=150)
+        os.remove(img2)
+
+        self.ln(10)
+
 
         # Distribuição sugerida (adaptativa, não fixa)
         self.ln(5)
@@ -129,7 +179,23 @@ class PlanoFinanceiroPDF(FPDF):
         valores_sug = [essencial, qualidade, poupanca]
 
         plt.figure(figsize=(6, 3))
-        plt.bar(categorias_sug, valores_sug, color=["#007bff", "#ffc107", "#28a745"])
+        # plt.bar(categorias_sug, valores_sug, color=["#007bff", "#ffc107", "#28a745"])
+        
+        colors = ["#5B8FA9", "#AACFCF", "#78C3A9"]
+        barras3 = plt.bar(categorias_sug, valores_sug, color=colors)
+        
+        for bar in barras3:
+            yval = bar.get_height()
+            offset = yval * 0.05
+            if yval > 1000:
+                plt.text(bar.get_x() + bar.get_width()/2, yval - offset*3, f"R$ {yval:,.0f}", 
+                        ha='center', va='bottom', fontsize=10, color='white')
+            else:
+                plt.text(bar.get_x() + bar.get_width()/2, yval + offset, f"R$ {yval:,.0f}", 
+                        ha='center', va='bottom', fontsize=10, color='black')
+
+
+
         plt.ylabel("R$ Valor sugerido")
         plt.title("Distribuição Sugerida")
         plt.tight_layout()
@@ -141,24 +207,37 @@ class PlanoFinanceiroPDF(FPDF):
 
         self.ln(10)
 
-    def add_grafico_50_30_20(self, dados):
-        essencial = dados["renda_individual"] * 0.5
-        qualidade = dados["renda_individual"] * 0.3
-        poupanca = dados["renda_individual"] * 0.2
+    def add_grafico_evolucao_patrimonial(self, dados):
+        investimento_mensal = dados.get("valor_investido_mes", 0)
+        reserva_inicial = dados.get("reserva_emergencia", 0)
+        meses = 60
+        taxa_juros = 0.006  # 0,6% ao mês
 
-        labels = ["Essencial (50%)", "Qualidade de vida (30%)", "Poupança/Investimentos (20%)"]
-        valores = [essencial, qualidade, poupanca]
+        montante = reserva_inicial
+        historico = []
 
-        plt.figure(figsize=(5, 5))
-        plt.pie(valores, labels=labels, autopct="%1.1f%%", startangle=90)
-        plt.title("Distribuição recomendada: 50 / 30 / 20")
-        caminho_img = "grafico_50_30_20.png"
-        plt.savefig(caminho_img)
+        for _ in range(meses + 1):
+            historico.append(montante)
+            montante += montante * taxa_juros + investimento_mensal
+
+        plt.figure(figsize=(7, 3.5))
+        plt.plot(range(meses + 1), historico, linestyle="-", color="#198754")
+        plt.title("Evolução Simulada do Patrimônio (5 anos)")
+        plt.xlabel("Meses")
+        plt.ylabel("Valor Acumulado (R$)")
+        plt.grid(True)
+        plt.tight_layout()
+
+        for i in [12, 24, 36, 48, 60]:
+            plt.text(i - 2, historico[i] - 5000, f"R$ {historico[i]:,.0f}", fontsize=8, ha='right', va='top')
+
+        img_evolucao = "grafico_evolucao.png"
+        plt.savefig(img_evolucao)
         plt.close()
-
-        self.image(caminho_img, x=40, w=130)
-        os.remove(caminho_img)
+        self.image(img_evolucao, x=20, w=170)
+        os.remove(img_evolucao)
         self.ln(10)
+
 
     def add_recomendacoes(self, dados):
         self.set_font("Helvetica", "B", 13)
@@ -180,7 +259,7 @@ def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
     pdf.add_capa()
     pdf.add_dados_pessoais(dados)
     pdf.add_painel_financeiro(dados)
-    # pdf.add_grafico_50_30_20(dados)
+    pdf.add_grafico_evolucao_patrimonial(dados)
     pdf.add_recomendacoes(dados)
     pdf.output(nome_arquivo)
     print(f"✅ PDF gerado com sucesso: {nome_arquivo}")
