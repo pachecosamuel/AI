@@ -128,7 +128,7 @@ class PlanoFinanceiroPDF(FPDF):
         self.ln(5)
 
         # ---------- GRÁFICO 2: PATRIMÔNIO / RESERVA ----------
-        categorias_acumulacao = ["Investimento Mensal", "Reserva Emergência", "Investimentos Totais"]
+        categorias_acumulacao = ["Aporte mensal", "Reserva", "Investimentos Totais"]
         valores_acumulacao = [investido_mes, reserva, investimento_total]
 
         plt.figure(figsize=(5, 3))
@@ -229,7 +229,7 @@ class PlanoFinanceiroPDF(FPDF):
         plt.tight_layout()
 
         for i in [12, 24, 36, 48, 60]:
-            plt.text(i - 2, historico[i] - 5000, f"R$ {historico[i]:,.0f}", fontsize=8, ha='right', va='top')
+            plt.text(i - 2, historico[i] - 5000, f"R$ {historico[i]:,.0f}", fontsize=8, ha='right', va='top', fontweight='bold', color='black' )
 
         img_evolucao = "grafico_evolucao.png"
         plt.savefig(img_evolucao)
@@ -237,6 +237,71 @@ class PlanoFinanceiroPDF(FPDF):
         self.image(img_evolucao, x=20, w=170)
         os.remove(img_evolucao)
         self.ln(10)
+
+    def add_grafico_evolucao_10anos(self, dados):
+        investimento_mensal = dados.get("valor_investido_mes", 0)
+        reserva_inicial = dados.get("reserva_emergencia", 0)
+        meses = 120
+        taxa_juros = 0.006  # 0,6% ao mês
+
+        montante = reserva_inicial
+        historico = []
+
+        for _ in range(meses + 1):
+            historico.append(montante)
+            montante += montante * taxa_juros + investimento_mensal
+
+        plt.figure(figsize=(7, 3.5))
+        plt.plot(range(meses + 1), historico, linestyle="-", color="#0d6efd")
+        plt.title("Evolução Simulada do Patrimônio (10 anos)")
+        plt.xlabel("Meses")
+        plt.ylabel("Valor Acumulado (R$)")
+        plt.grid(True)
+        plt.tight_layout()
+
+        for i in range(24, meses + 1, 36):
+            plt.text(i - 3, historico[i] - historico[i]*0.05, f"R$ {historico[i]:,.0f}",
+                    fontsize=8, fontweight='bold', ha='right', va='top', color='black')
+
+        img = "grafico_evolucao_10anos.png"
+        plt.savefig(img)
+        plt.close()
+        self.image(img, x=20, w=170)
+        os.remove(img)
+        self.ln(10)
+
+    def add_grafico_evolucao_20anos(self, dados):
+        investimento_mensal = dados.get("valor_investido_mes", 0)
+        reserva_inicial = dados.get("reserva_emergencia", 0)
+        meses = 240
+        taxa_juros = 0.006  # 0,6% ao mês
+
+        montante = reserva_inicial
+        historico = []
+
+        for _ in range(meses + 1):
+            historico.append(montante)
+            montante += montante * taxa_juros + investimento_mensal
+
+        plt.figure(figsize=(7, 3.5))
+        plt.plot(range(meses + 1), historico, linestyle="-", color="#6f42c1")
+        plt.title("Evolução Simulada do Patrimônio (20 anos)")
+        plt.xlabel("Meses")
+        plt.ylabel("Valor Acumulado (R$)")
+        plt.grid(True)
+        plt.tight_layout()
+
+        for i in range(60, meses + 1, 60):
+            plt.text(i - 3, historico[i] - historico[i]*0.05, f"R$ {historico[i]:,.0f}",
+                    fontsize=8, fontweight='bold', ha='right', va='top', color='black')
+
+        img = "grafico_evolucao_20anos.png"
+        plt.savefig(img)
+        plt.close()
+        self.image(img, x=20, w=170)
+        os.remove(img)
+        self.ln(10)
+
 
 
     def add_recomendacoes(self, dados):
@@ -260,6 +325,8 @@ def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
     pdf.add_dados_pessoais(dados)
     pdf.add_painel_financeiro(dados)
     pdf.add_grafico_evolucao_patrimonial(dados)
+    pdf.add_grafico_evolucao_10anos(dados)
+    pdf.add_grafico_evolucao_20anos(dados)  
     pdf.add_recomendacoes(dados)
     pdf.output(nome_arquivo)
     print(f"✅ PDF gerado com sucesso: {nome_arquivo}")
