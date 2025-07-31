@@ -46,15 +46,99 @@ class PlanoFinanceiroPDF(FPDF):
         self.ln(10)
 
     def add_painel_financeiro(self, dados):
-        self.set_font("Helvetica", "B", 13)
-        self.cell(0, 10, "Resumo Financeiro", ln=True, align="C")
+        self.add_page()
+        self.set_font("Helvetica", "B", 14)
+        self.cell(0, 12, "Resumo Financeiro", ln=True, align="C")
+        self.ln(5)
+
+        # Cálculos
+        renda = dados['renda_individual']
+        fixos = dados['despesas_fixas']
+        variaveis = dados['despesas_variaveis']
+        investido_mes = dados.get('valor_investido_mes', 0)
+        reserva = dados.get('reserva_emergencia', 0)
+        sobra = renda - (fixos + variaveis)
+        percentual_investimento = (investido_mes / renda) * 100 if renda else 0
+        meses_reserva = dados.get("meses_cobertura_reserva", 0)
+
+        # Perfil financeiro (frases automáticas)
+        frases = []
+        if sobra > 0:
+            frases.append("[OK] Você tem superávit mensal. Excelente!")
+        else:
+            frases.append("[ALERTA] Seus gastos totais superam sua renda.")
+
+        if meses_reserva >= 6:
+            frases.append("[OK] Sua reserva de emergência está saudável.")
+        elif 1 <= meses_reserva < 6:
+            frases.append("[ATENÇÃO] Sua reserva é moderada. Busque ampliar.")
+        else:
+            frases.append("[CRÍTICO] É fundamental construir uma reserva de emergência.")
+
+        if percentual_investimento >= 15:
+            frases.append("[OK] Ótimo hábito de investir mensalmente.")
+        elif 5 <= percentual_investimento < 15:
+            frases.append("[ATENÇÃO] Seu percentual de investimento pode crescer.")
+        else:
+            frases.append("[CRÍTICO] Comece a investir de forma consistente.")
+
         self.set_font("Helvetica", "", 12)
-        self.ln(10) # Adicionei uma quebra de linha de 10 pontos
-        self.cell(0, 10, f"Renda mensal individual: R$ {dados['renda_individual']:.2f}", ln=True)
-        self.cell(0, 10, f"Gastos fixos: R$ {dados['despesas_fixas']:.2f}", ln=True)
-        self.cell(0, 10, f"Gastos variáveis: R$ {dados['despesas_variaveis']:.2f}", ln=True)
-        self.cell(0, 10, f"Reserva de emergência: R$ {dados['reserva_emergencia']:.2f}", ln=True)
-        self.cell(0, 10, f"Investimentos atuais: R$ {dados['valor_investido']:.2f}", ln=True)
+        for f in frases:
+            self.multi_cell(0, 8, f)
+        self.ln(5)
+
+        # Dados brutos
+        self.set_font("Helvetica", "", 12)
+        self.cell(0, 10, f"Renda mensal: R$ {renda:.2f}", ln=True)
+        self.cell(0, 10, f"Gastos fixos: R$ {fixos:.2f}", ln=True)
+        self.cell(0, 10, f"Gastos variáveis: R$ {variaveis:.2f}", ln=True)
+        self.cell(0, 10, f"Investimento mensal: R$ {investido_mes:.2f}", ln=True)
+        self.cell(0, 10, f"Reserva de emergência: R$ {reserva:.2f}", ln=True)
+
+        # Gráfico barras: Distribuição real
+        categorias = ["Gastos Fixos", "Gastos Variáveis", "Investimento Mensal", "Reserva Emergência"]
+        valores = [fixos, variaveis, investido_mes, reserva]
+
+        plt.figure(figsize=(6, 3))
+        plt.barh(categorias, valores, color=["#007bff", "#ff9900", "#28a745", "#6c757d"])
+        plt.xlabel("R$ Valor")
+        plt.title("Distribuição financeira atual")
+        plt.tight_layout()
+        img_grafico = "grafico_distribuicao_real.png"
+        plt.savefig(img_grafico)
+        plt.close()
+        self.image(img_grafico, x=30, w=150)
+        os.remove(img_grafico)
+
+        # Distribuição sugerida (adaptativa, não fixa)
+        self.ln(5)
+        self.set_font("Helvetica", "B", 12)
+        self.cell(0, 10, "Distribuição sugerida com base no seu perfil:", ln=True)
+        self.set_font("Helvetica", "", 12)
+
+        if sobra > 0:
+            essencial = fixos
+            qualidade = variaveis
+            poupanca = sobra
+        else:
+            essencial = renda * 0.6
+            qualidade = renda * 0.2
+            poupanca = renda * 0.2
+
+        categorias_sug = ["Essencial", "Qualidade de Vida", "Poupança/Investimentos"]
+        valores_sug = [essencial, qualidade, poupanca]
+
+        plt.figure(figsize=(6, 3))
+        plt.bar(categorias_sug, valores_sug, color=["#007bff", "#ffc107", "#28a745"])
+        plt.ylabel("R$ Valor sugerido")
+        plt.title("Distribuição Sugerida")
+        plt.tight_layout()
+        img_sug = "grafico_distribuicao_sugerida.png"
+        plt.savefig(img_sug)
+        plt.close()
+        self.image(img_sug, x=30, w=150)
+        os.remove(img_sug)
+
         self.ln(10)
 
     def add_grafico_50_30_20(self, dados):
@@ -96,7 +180,7 @@ def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
     pdf.add_capa()
     pdf.add_dados_pessoais(dados)
     pdf.add_painel_financeiro(dados)
-    pdf.add_grafico_50_30_20(dados)
+    # pdf.add_grafico_50_30_20(dados)
     pdf.add_recomendacoes(dados)
     pdf.output(nome_arquivo)
     print(f"✅ PDF gerado com sucesso: {nome_arquivo}")
