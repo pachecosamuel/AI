@@ -9,44 +9,20 @@ BACKGROUND_COLOR = (243, 255, 250)
 
 class PlanoFinanceiroPDF(FPDF):
     def header(self):
-        # Aplica cor de fundo em cada nova página
-        self.set_fill_color(*BACKGROUND_COLOR)
-        self.rect(0, 0, self.w, self.h, 'F')
-
-
-    def add_capa(self):
-        self.add_page()
-        self.set_font("Helvetica", "B", 24)
-        self.ln(60)
-        self.cell(0, 20, "Consultoria Financeira", ln=True, align="C")
-        self.set_font("Helvetica", "", 16)
-        self.cell(0, 10, "Mudando sua relação com o dinheiro", ln=True, align="C")
-        self.ln(100)
-        self.set_font("Helvetica", "I", 12)
-        self.cell(0, 10, "por Samuel Pacheco", ln=True, align="C")
-
+        self.set_font("Helvetica", "B", 16)
+        self.cell(0, 10, "Plano Financeiro Personalizado", ln=True, align="C")
+        self.ln(10)
 
     def add_dados_pessoais(self, dados):
-        self.add_page()
-        self.set_font("Helvetica", "B", 14)
-        self.cell(0, 12, "Dados Pessoais", ln=True, align="C")
-
-        def linha(titulo, valor):
-            self.set_font("Helvetica", "B", 12)
-            self.cell(40, 10, f"{titulo}:", ln=False)
-            self.set_font("Helvetica", "", 12)
-            self.cell(0, 10, str(valor), ln=True)
-
-        linha("Nome", dados["nome"])
-        linha("Idade", dados["idade"])
-        linha("Profissão", dados["profissao"])
-        linha("E-mail", dados["email"])
-        linha("WhatsApp", dados["telefone"])
+        self.set_font("Helvetica", "", 12)
+        self.cell(0, 10, f"Nome: {dados['nome']}", ln=True)
+        self.cell(0, 10, f"Idade: {dados['idade']}  |  Profissão: {dados['profissao']}", ln=True)
+        self.cell(0, 10, f"E-mail: {dados['email']}  |  WhatsApp: {dados['telefone']}", ln=True)
         self.ln(5)
 
     def add_painel_financeiro(self, dados):
         self.set_font("Helvetica", "B", 13)
-        self.cell(0, 10, "Resumo Financeiro", ln=True, align="C")
+        self.cell(0, 10, "Resumo Financeiro", ln=True)
         self.set_font("Helvetica", "", 12)
         self.cell(0, 10, f"Renda mensal individual: R$ {dados['renda_individual']:.2f}", ln=True)
         self.cell(0, 10, f"Gastos fixos: R$ {dados['despesas_fixas']:.2f}", ln=True)
@@ -76,7 +52,7 @@ class PlanoFinanceiroPDF(FPDF):
 
     def add_recomendacoes(self, dados):
         self.set_font("Helvetica", "B", 13)
-        self.cell(0, 10, "Sugestões e Próximos Passos", ln=True, align="C")
+        self.cell(0, 10, "Sugestões e Próximos Passos", ln=True)
         self.set_font("Helvetica", "", 12)
         self.multi_cell(0, 10, 
             f"- Reforce o hábito de controle mensal com planilha ou app.\n"
@@ -89,8 +65,7 @@ class PlanoFinanceiroPDF(FPDF):
 
 def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
     pdf = PlanoFinanceiroPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_capa()
+    pdf.add_page()
     pdf.add_dados_pessoais(dados)
     pdf.add_painel_financeiro(dados)
     pdf.add_grafico_50_30_20(dados)
