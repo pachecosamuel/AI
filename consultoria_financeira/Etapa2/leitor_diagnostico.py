@@ -20,7 +20,7 @@ def carregar_dados(caminho_csv: str) -> list[dict]:
     return dados_mentorados
 
 if __name__ == "__main__":
-    caminho = "docs/diagnostico_financeiro_samuel.csv"
+    caminho = "../docs/diagnostico_financeiro_samuel.csv"
     
     mentorados = carregar_dados(caminho)
     mentor_padronizado = transformar_resposta_bruta(mentorados[0])
