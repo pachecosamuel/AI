@@ -23,6 +23,8 @@
 ## Visão Geral
 Essa API foi criada para demonstrar uma implementação prática de autenticação/autorizaçao integrada com Firestore, além de endpoints utilitários que suportam fluxos comuns em aplicações de dados. A estrutura segue princípios da Clean Architecture para facilitar manutenção, testes e evolução.
 
+![alt text](image.png)
+
 ---
 
 ## Features
