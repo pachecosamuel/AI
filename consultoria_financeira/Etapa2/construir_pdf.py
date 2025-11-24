@@ -9,6 +9,28 @@ from matplotlib.ticker import StrMethodFormatter
 # Convertendo cor hex para RGB (f3fffa → 243, 255, 250)
 BACKGROUND_COLOR = (243, 255, 250)
 
+def as_bool(val):
+    # aceita bool (True/False), strings ("sim", "não", "true", "false", "1", "0", etc.) e None
+    if isinstance(val, bool):
+        return val
+    s = str(val if val is not None else "").strip().lower()
+    return s in {"sim", "s", "yes", "y", "true", "1", "on"}
+
+
+def as_float(val, default=0.1):
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    s = str(val).strip().replace("R$", "").replace(" ", "")
+    s = s.replace(".", "").replace(",", ".")
+    try:
+        return float(s)
+    except ValueError:
+        return default
+
+
+
 class PlanoFinanceiroPDF(FPDF):
     def header(self):
         # Aplica cor de fundo em cada nova página
@@ -87,7 +109,8 @@ class PlanoFinanceiroPDF(FPDF):
 
         self.set_font("Helvetica", "", 12)
         for f in frases:
-            self.cell(0, 8, f)
+            self.multi_cell(0, 8, f)
+            self.ln(2)
         self.ln(5)
 
         # Valores básicos apresentados
@@ -177,7 +200,13 @@ class PlanoFinanceiroPDF(FPDF):
         
         
         perfil = (dados.get("perfil_risco") or "").strip().lower()
-        possui_dividas = ((dados.get("você_possui_dívidas_atualmente") or dados.get("possui_dividas") or "").strip().lower() == "sim")
+        
+        # depois:
+        raw_dividas = dados.get("você_possui_dívidas_atualmente")
+        if raw_dividas is None:
+            raw_dividas = dados.get("possui_dividas")
+        possui_dividas = as_bool(raw_dividas)
+
 
         
         if renda and renda > 0:
@@ -248,50 +277,17 @@ class PlanoFinanceiroPDF(FPDF):
         self.ln(10)
 
 
-        # if sobra > 0:
-        #     essencial = fixos
-        #     qualidade = variaveis
-        #     poupanca = sobra
-        # else:
-        #     essencial = renda * 0.6
-        #     qualidade = renda * 0.2
-        #     poupanca = renda * 0.2
-
-        # categorias_sug = ["Essencial", "Qualidade de Vida", "Poupança/Investimentos"]
-        # valores_sug = [essencial, qualidade, poupanca]
-
-        # plt.figure(figsize=(6, 3))
-        # # plt.bar(categorias_sug, valores_sug, color=["#007bff", "#ffc107", "#28a745"])
-        
-        # colors = ["#5B8FA9", "#AACFCF", "#78C3A9"]
-        # barras3 = plt.bar(categorias_sug, valores_sug, color=colors)
-        
-        # for bar in barras3:
-        #     yval = bar.get_height()
-        #     offset = yval * 0.05
-        #     if yval > 1000:
-        #         plt.text(bar.get_x() + bar.get_width()/2, yval - offset*3, f"R$ {yval:,.0f}", 
-        #                 ha='center', va='bottom', fontsize=10, color='white')
-        #     else:
-        #         plt.text(bar.get_x() + bar.get_width()/2, yval + offset, f"R$ {yval:,.0f}", 
-        #                 ha='center', va='bottom', fontsize=10, color='black')
-
-
-
-        # plt.ylabel("R$ Valor sugerido")
-        # plt.title("Distribuição Sugerida")
-        # plt.tight_layout()
-        # img_sug = "grafico_distribuicao_sugerida.png"
-        # plt.savefig(img_sug)
-        # plt.close()
-        # self.image(img_sug, x=30, w=150)
-        # os.remove(img_sug)
-
-        # self.ln(10)
-
     def add_grafico_evolucao_patrimonial(self, dados):
-        investimento_mensal = dados.get("valor_investido_mes", 0)
-        reserva_inicial = dados.get("reserva_emergencia", 0)
+        
+        # 1 Leitura dos valores
+        investimento_mensal = as_float(
+            dados.get("valor_investido_mes", dados.get("se_sim,_qual_a_média_de_investimento_mensal?"))
+        )
+        reserva_inicial = as_float(
+            dados.get("reserva_emergencia", dados.get("se_sim,_qual_o_valor_atual_da_reserva?_(aproximado)"))
+        )
+
+        # 2) Construção da série
         meses = 60
         taxa_juros = 0.006  # 0,6% ao mês
 
@@ -302,8 +298,34 @@ class PlanoFinanceiroPDF(FPDF):
             historico.append(montante)
             montante += montante * taxa_juros + investimento_mensal
 
+        # 3) Plot da curva
         plt.figure(figsize=(7, 3.5))
         plt.plot(range(meses + 1), historico, linestyle="-", color="#198754")
+        
+        
+    # Protege contra série toda zerada e controla as anotações
+        max_val = max(historico) if historico else 0.0
+        if max_val <= 0.0:
+            # Define um range mínimo para evitar eixo degenerado
+            plt.ylim(-1, 1)
+            # Não adiciona anotações (não há o que anotar)
+        else:
+            # Mantém seu padrão de anotações a cada 36 meses a partir do 24
+            for i in range(24, meses + 1, 36):
+                # Usa um deslocamento proporcional ao valor máximo (fica adaptativo)
+                offset = max_val * 0.05
+                plt.text(
+                    i - 3,
+                    historico[i] - offset,
+                    f"R$ {historico[i]:,.0f}",
+                    fontsize=8,
+                    fontweight="bold",
+                    ha="right",
+                    va="top",
+                    color="black",
+                )
+
+        # 5) Títulos, eixos e salvamento
         plt.title("Evolução Simulada do Patrimônio (5 anos)")
         plt.xlabel("Meses")
         plt.ylabel("Valor Acumulado (R$)")
@@ -321,8 +343,14 @@ class PlanoFinanceiroPDF(FPDF):
         self.ln(10)
 
     def add_grafico_evolucao_10anos(self, dados):
-        investimento_mensal = dados.get("valor_investido_mes", 0)
-        reserva_inicial = dados.get("reserva_emergencia", 0)
+
+        investimento_mensal = as_float(
+            dados.get("valor_investido_mes", dados.get("se_sim,_qual_a_média_de_investimento_mensal?"))
+        )
+        reserva_inicial = as_float(
+            dados.get("reserva_emergencia", dados.get("se_sim,_qual_o_valor_atual_da_reserva?_(aproximado)"))
+        )
+
         meses = 120
         taxa_juros = 0.006  # 0,6% ao mês
 
@@ -335,6 +363,31 @@ class PlanoFinanceiroPDF(FPDF):
 
         plt.figure(figsize=(7, 3.5))
         plt.plot(range(meses + 1), historico, linestyle="-", color="#0d6efd")
+        
+        
+    # Protege contra série toda zerada e controla as anotações
+        max_val = max(historico) if historico else 0.0
+        if max_val <= 0.0:
+            # Define um range mínimo para evitar eixo degenerado
+            plt.ylim(-1, 1)
+            # Não adiciona anotações (não há o que anotar)
+        else:
+            # Mantém seu padrão de anotações a cada 36 meses a partir do 24
+            for i in range(24, meses + 1, 36):
+                # Usa um deslocamento proporcional ao valor máximo (fica adaptativo)
+                offset = max_val * 0.05
+                plt.text(
+                    i - 3,
+                    historico[i] - offset,
+                    f"R$ {historico[i]:,.0f}",
+                    fontsize=8,
+                    fontweight="bold",
+                    ha="right",
+                    va="top",
+                    color="black",
+                )
+
+        
         plt.title("Evolução Simulada do Patrimônio (10 anos)")
         plt.xlabel("Meses")
         plt.ylabel("Valor Acumulado (R$)")
@@ -353,8 +406,14 @@ class PlanoFinanceiroPDF(FPDF):
         self.ln(10)
 
     def add_grafico_evolucao_20anos(self, dados):
-        investimento_mensal = dados.get("valor_investido_mes", 0)
-        reserva_inicial = dados.get("reserva_emergencia", 0)
+
+        investimento_mensal = as_float(
+            dados.get("valor_investido_mes", dados.get("se_sim,_qual_a_média_de_investimento_mensal?"))
+        )
+        reserva_inicial = as_float(
+            dados.get("reserva_emergencia", dados.get("se_sim,_qual_o_valor_atual_da_reserva?_(aproximado)"))
+        )
+
         meses = 240
         taxa_juros = 0.006  # 0,6% ao mês
 
@@ -367,6 +426,30 @@ class PlanoFinanceiroPDF(FPDF):
 
         plt.figure(figsize=(7, 3.5))
         plt.plot(range(meses + 1), historico, linestyle="-", color="#6f42c1")
+        
+            # Protege contra série toda zerada e controla as anotações
+        max_val = max(historico) if historico else 0.0
+        if max_val <= 0.0:
+            # Define um range mínimo para evitar eixo degenerado
+            plt.ylim(-1, 1)
+            # Não adiciona anotações (não há o que anotar)
+        else:
+            # Mantém seu padrão de anotações a cada 36 meses a partir do 24
+            for i in range(24, meses + 1, 36):
+                # Usa um deslocamento proporcional ao valor máximo (fica adaptativo)
+                offset = max_val * 0.05
+                plt.text(
+                    i - 3,
+                    historico[i] - offset,
+                    f"R$ {historico[i]:,.0f}",
+                    fontsize=8,
+                    fontweight="bold",
+                    ha="right",
+                    va="top",
+                    color="black",
+                )
+
+        
         plt.title("Evolução Simulada do Patrimônio (20 anos)")
         plt.xlabel("Meses")
         plt.ylabel("Valor Acumulado (R$)")
@@ -494,7 +577,7 @@ class PlanoFinanceiroPDF(FPDF):
 
         objetivo = dados.get("qual_seu_objetivo_financeiro_mais_importante_hoje", "")
         prazo = dados.get("para_esse_objetivo_você_tem_algum_prazo_específico_para_realizar", "")
-        possui_dividas = dados.get("você_possui_dívidas_atualmente", "").lower() == "sim"
+        possui_dividas = as_bool(dados.get("você_possui_dívidas_atualmente", dados.get("possui_dividas")))
         reserva = float(dados.get("se_sim_qual_o_valor_atual_da_reserva_aproximado", 0) or 0)
 
         # Curto prazo
@@ -729,6 +812,15 @@ class PlanoFinanceiroPDF(FPDF):
         )
         self.multi_cell(0, 7, texto)
         self.ln(2)
+        
+        
+        def as_bool(val):
+            # aceita bool (True/False), strings ("sim", "não", "true", "false", "1", "0", etc.) e None
+            if isinstance(val, bool):
+                return val
+            s = str(val if val is not None else "").strip().lower()
+            return s in {"sim", "s", "yes", "y", "true", "1", "on"}
+
 
 
 def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
@@ -737,9 +829,9 @@ def gerar_plano_pdf(dados, nome_arquivo="plano_financeiro.pdf"):
     pdf.add_capa()
     pdf.add_dados_pessoais(dados)
     pdf.add_painel_financeiro(dados)
-    pdf.add_grafico_evolucao_patrimonial(dados)
-    pdf.add_grafico_evolucao_10anos(dados)
-    pdf.add_grafico_evolucao_20anos(dados)  
+    # pdf.add_grafico_evolucao_patrimonial(dados)
+    # pdf.add_grafico_evolucao_10anos(dados)
+    # pdf.add_grafico_evolucao_20anos(dados)  
     pdf.add_estrategia_arca(dados)
     pdf.add_metas_smart(dados)
     pdf.add_tabela_metas_smart(dados)

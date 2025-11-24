@@ -13,7 +13,7 @@ def exibir_dados_mentorado(mentor: dict, indice: int = 0):
     print("-" * 40)
 
 def main():
-    caminho_csv = "docs/diagnostico_financeiro_samuel.csv"  # ou substitua por input() se quiser parametrizar
+    caminho_csv = "docs/diagnostico_financeiro_pablo.csv"  # ou substitua por input() se quiser parametrizar
 
     print("🔄 Carregando dados brutos do Forms...")
     respostas_brutas = carregar_dados(caminho_csv)
