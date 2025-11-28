@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer
 from models.request import PromptRequest
 from models.email import EmailRequest
 
-from utils.auth import get_current_active_user
+from src.utils.security.auth import get_current_active_user
 from services.cohere_service import generate_response
 from services.file_service import save_file
 from services.pdf_service import extract_text_from_pdf

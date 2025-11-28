@@ -1,0 +1,13 @@
+webhooks/whatsapp_webhook.py → recebe eventos
+
+whatsapp/whatsapp_controller.py → interpreta
+
+whatsapp/whatsapp_service.py → envia mensagens
+
+ai/openai_client.py → gera respostas
+
+utils/security/ → fica responsável pela segurança
+
+utils/firebase/ → persistência
+
+services/ → serviços auxiliares

@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException, status, Depends
 from datetime import datetime, timedelta, timezone
-from utils.firebase import db
+from src.utils.firebase.firebase import db
 import logging
 
 # Configuração do logger
