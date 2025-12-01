@@ -1,7 +1,7 @@
 import os
 import logging
 import pdfplumber
-from PyPDF2 import PdfReader
+# from PyPDF2 import PdfReader
 
 
 # Configuração de logging
