@@ -4,6 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv(verbose=True)
 
+# META VALUES
+META_TOKEN = os.getenv("META_TOKEN")
+PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
+WPP_API_VERSION = os.getenv("WPP_API_VERSION")
+
 API_KEY = os.getenv("COHERE_KEY")
 PORT = int(os.getenv("PORT", 8080))
 

@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 
 class WppText(BaseModel):
     body: str
 
 class WppMessage(BaseModel):
-    from_: str
+    from_: str = Field(alias="from")
     id: str
     timestamp: str
     type: str
@@ -13,9 +13,11 @@ class WppMessage(BaseModel):
 
     # O WhatsApp usa a chave "from", mas Python não permite atributo "from"
     # Por isso, usamos alias="from"
-    class Config:
-        populate_by_name = True
-        fields = {"from_": "from"}
+        # Nova configuração para o Pydantic v2
+    model_config = ConfigDict(
+        populate_by_name=True,   # permite usar from_ ao construir o model
+        extra="ignore"           # evita erro caso o WhatsApp envie campos a mais
+    )
 
 
 class WppContactProfile(BaseModel):
