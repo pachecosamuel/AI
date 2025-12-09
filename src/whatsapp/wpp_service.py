@@ -1,15 +1,22 @@
-from src.utils.config import META_TOKEN, PHONE_NUMBER_ID, VERIFY_TOKEN, WPP_API_VERSION
-from src.whatsapp.wpp_models import NormalizedMessage
+from utils.config import META_TOKEN, PHONE_NUMBER_ID, VERIFY_TOKEN, WPP_API_VERSION
+from whatsapp.wpp_models import NormalizedMessage
 from typing import Dict, Any
 import logging
 import httpx
 
 logger = logging.getLogger(__name__)
 
+class IgnoredEvent(Exception):
+    """Usado para indicar que o evento recebido não é uma mensagem de usuário."""
+    pass
+
+
 def parse_webhook_payload(payload: Dict[str, Any]) -> NormalizedMessage:
     """
     Extrai e normaliza o payload recebido do Webhook do WhatsApp para o modelo
     NormalizedMessage.
+    Parseia eventos que contenham mídias e textos.
+    Ignora eventos de status
 
     Exemplo de mapeamento:
       - sender_number <- messages[0]["from"]
@@ -21,51 +28,67 @@ def parse_webhook_payload(payload: Dict[str, Any]) -> NormalizedMessage:
     try:
         entry = payload.get("entry", [])
         if not entry:
-            raise ValueError("Payload inválido: missing entry")
+            raise IgnoredEvent("Payload sem entry message.")
 
         change = entry[0].get("changes", [])
         if not change:
-            raise ValueError("Payload inválido: missing changes")
+            raise IgnoredEvent("Payload sem entry message.")
 
         value = change[0].get("value", {})
+        
+        # 🟦 Caso 1 — Evento de STATUS → ignorar
+        if "statuses" in value and "messages" not in value:
+            status = value["statuses"][0].get("status")
+            msg_id = value["statuses"][0].get("id")
+            logger.info("🔵 Status %s para mensagem %s", status, msg_id)
+            raise IgnoredEvent("Evento de status")
+        
+        # 🟩 Caso 2 — Evento de mensagem recebida
         messages = value.get("messages", [])
         if not messages:
-            raise ValueError("Nenhuma mensagem encontrada no payload")
+            logger.info("🔵 Evento de status recebido → pass")
+            raise IgnoredEvent("Evento de status (sent/delivered/read)")
 
-        msg = messages[0]  # foco na primeira mensagem do batch
+        msg = messages[0]  
 
         # Campos principais da mensagem
         sender_number = msg.get("from")
         sender_name = (
-            value.get("contacts", [{}])[0].get("profile", {}).get("name")
-            if value.get("contacts")
-            else None
+            value.get("contacts", [{}])[0]
+            .get("profile", {})
+            .get("name")
         )
 
-        # texto pode não existir (imagem, etc.) → usar empty string como fallback
-        message_text = ""
-        if msg.get("type") == "text":
-            message_text = msg.get("text", {}).get("body", "") or ""
-        else:
-            # placeholder para outros tipos (p.ex. "image" -> caption)
-            # você pode estender aqui para image/video/location etc.
-            message_text = msg.get("text", {}).get("body", "") or ""
 
-        message_id = msg.get("id") or ""
-        timestamp = msg.get("timestamp") or ""
+        # Suporte básico: textos e fallback para mídia
+        msg_type = msg.get("type")
+        
+        if msg_type == "text":
+            message_text = msg.get("text", {}).get("body", "")
+        else:
+            caption = msg.get(msg_type, {}).get("caption") or ""
+            message_text = caption or f"[{msg_type.upper()} recebida]"
+
 
         normalized = NormalizedMessage(
             sender_number=str(sender_number),
             sender_name=sender_name,
             message_text=str(message_text),
-            message_id=str(message_id),
-            timestamp=str(timestamp),
+            message_id=str(msg.get("id") or ""),
+            timestamp=str(msg.get("timestamp") or "")
         )
 
-        logger.debug("NormalizedMessage criado: %s", normalized.model_dump_json())
+        logger.info(
+            "💬 Mensagem recebida de %s: %s",
+            normalized.sender_name or normalized.sender_number,
+            normalized.message_text
+        )
 
         return normalized
 
+    except IgnoredEvent as ige:
+        raise
+    
     except Exception as e:
         logger.exception("Erro ao normalizar payload do WhatsApp: %s", e)
         raise
@@ -97,6 +120,7 @@ async def send_whatsapp_message(to: str, text: str) -> dict:
 
     payload = {
         "messaging_product": "whatsapp",
+        "recipient_type": "individual",
         "to": to,
         "type": "text",
         "text": {"body": text},

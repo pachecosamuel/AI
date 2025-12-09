@@ -5,11 +5,11 @@ from models.token import Token
 from models.user import UserInDB
 
 from utils.rate_limiter import rate_limiter, reset_attempts  
-from src.utils.firebase.firebase import create_user
-from src.utils.security.security import get_password_hash
-from src.utils.security.auth import authenticate_user, create_access_token
+from utils.firebase.firebase import create_user
+from utils.security.security import get_password_hash
+from utils.security.auth import authenticate_user, create_access_token
 from utils.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from src.utils.security.auth import create_access_token, get_current_active_user, authenticate_user
+from utils.security.auth import create_access_token, get_current_active_user, authenticate_user
 
 router = APIRouter(tags=["Register, login and authentication"])
 security = HTTPBearer()

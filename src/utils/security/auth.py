@@ -6,8 +6,8 @@ from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorization
 from models.token import TokenData
 from models.user import UserInDB
 from utils.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from src.utils.firebase.firebase import get_user
-from src.utils.security.security import verify_password
+from utils.firebase.firebase import get_user
+from utils.security.security import verify_password
 
 # OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
