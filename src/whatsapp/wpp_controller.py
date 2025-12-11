@@ -11,6 +11,14 @@ from whatsapp.wpp_service import(
 import logging
 import json
 
+from automation.engine import FlowEngine
+from automation.state import InMemoryStateManager
+from automation.manager import FlowManager
+
+flow_manager = FlowManager("src/automation/flows")
+state_manager = InMemoryStateManager()
+engine = FlowEngine(flow_manager, state_manager, default_flow="welcome_flow")
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Whatsapp"])
@@ -56,19 +64,61 @@ async def receive_webhook(request: Request):
 
         log_incoming_message(message)
 
-        ai_response = generate_basic_response(message)
-        logger.info(f"💬 Resposta IA: {ai_response}")
+        try:
+            # tenta pegar estado e responder via engine
+            engine_response = engine.handle_message(user_id=message.sender_number, text=message.message_text)
+            reply_text = engine_response["reply"]
 
-        send_status = await send_whatsapp_message(
-            to=message.sender_number,
-            text=ai_response
-        )
+            await send_whatsapp_message(to=message.sender_number, text=reply_text)
 
-        logger.info(f"📤 Resultado envio Meta: {send_status}")
+        except Exception as e:
+            # fallback atual
+            reply_text = generate_basic_response(message)
+            await send_whatsapp_message(to=message.sender_number, text=reply_text)
+
+
 
         return {"status": "success"}
 
     except Exception as e:
         return JSONResponse(status_code=200, content={"status": "ignored"})
+    
+
+# @router.post("/webhook")
+# async def receive_webhook(request: Request):
+#     """Recebe eventos reais enviados pelo WhatsApp Cloud API."""
+    
+#     payload = await request.json()
+
+#     logger.debug("📥 Payload recebido (resumido): object=%s ", payload.get("object"))
+
+#     try:
+        
+#         message = parse_webhook_payload(payload)
+#         logger.info(f"✔ Parsed message: {message}")
+
+#         if not message.sender_name:
+#             return {"status": "ignored"}
+
+#         if not message.sender_number:
+#             logger.warning("⚠ Ignorado: sender_number vazio")
+#             return {"status": "ignored"}
+
+#         log_incoming_message(message)
+
+#         ai_response = generate_basic_response(message)
+#         logger.info(f"💬 Resposta IA: {ai_response}")
+
+#         send_status = await send_whatsapp_message(
+#             to=message.sender_number,
+#             text=ai_response
+#         )
+
+#         logger.info(f"📤 Resultado envio Meta: {send_status}")
+
+#         return {"status": "success"}
+
+#     except Exception as e:
+#         return JSONResponse(status_code=200, content={"status": "ignored"})
     
 

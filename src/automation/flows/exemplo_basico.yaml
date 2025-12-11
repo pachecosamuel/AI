@@ -1,0 +1,31 @@
+# Fluxo simples de exemplo (YAML)
+# Estrutura mínima: id, steps (cada step tem id, type, message, options)
+
+
+id: welcome_flow
+title: Fluxo de boas-vindas
+steps:
+- id: start
+type: message
+message: "Olá! Eu sou o assistente. Escolha uma opção:\n1) Horário\n2) Valores\n3) Falar com atendente"
+next:
+type: choice
+mapping:
+"1": horario
+"2": valores
+"3": atendente
+- id: horario
+type: message
+message: "Nosso horário é Segunda-Sexta, 9h-18h. Precisa de algo mais?"
+next:
+type: end
+- id: valores
+type: message
+message: "Temos planos a partir de R$ 99/mês. Quer receber uma proposta?"
+next:
+type: end
+- id: atendente
+type: message
+message: "Ok — vou encaminhar para um atendente. Por favor, aguarde."
+next:
+type: end

@@ -3,6 +3,8 @@ import uvicorn
 from api.routes import auth_routes, service_routes
 from whatsapp.wpp_controller import router as wpp_router
 
+
+
 app = FastAPI()
 
 # Registrar rotas
