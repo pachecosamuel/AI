@@ -10,12 +10,18 @@ from whatsapp.wpp_service import(
 )
 import logging
 import json
+from pathlib import Path
+
 
 from automation.engine import FlowEngine
 from automation.state import InMemoryStateManager
 from automation.manager import FlowManager
+from automation.config import FLOWS_DIR
 
-flow_manager = FlowManager("src/automation/flows")
+BASE_DIR = Path(__file__).resolve().parents[1]
+FLOWS_DIR = BASE_DIR / "automation" / "flows"
+
+flow_manager = FlowManager(str(FLOWS_DIR))
 state_manager = InMemoryStateManager()
 engine = FlowEngine(flow_manager, state_manager, default_flow="welcome_flow")
 
@@ -49,6 +55,15 @@ async def receive_webhook(request: Request):
     payload = await request.json()
 
     logger.debug("📥 Payload recebido (resumido): object=%s ", payload.get("object"))
+    
+    message = parse_webhook_payload(payload)
+    
+    logger.info("=== DEBUG ENGINE START ===")
+    logger.info(f"Flows encontrados: {flow_manager.list_flows()}")
+    logger.info(f"Texto recebido: {message.message_text}")
+    logger.info(f"Engine default_flow: {engine.default_flow}")
+    logger.info("=== DEBUG ENGINE END ===")
+
 
     try:
         

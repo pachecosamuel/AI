@@ -14,6 +14,15 @@ from services.email_service import send_email
 router = APIRouter(tags=["Services"])
 security = HTTPBearer()
 
+
+@router.get("/echo_simple_test", tags=["Test"])
+def echo():
+    try:
+        print("Oi, mundo!")
+        return {"success": True, "message": "sucess"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/hello_world", dependencies=[Depends(get_current_active_user)], tags=["Test"])
 def say_hello():
     try:
