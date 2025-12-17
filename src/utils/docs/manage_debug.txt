@@ -1,0 +1,73 @@
+🎮 Os botões (modelo mental simples)
+▶️ Continue (F5)
+
+Roda até o próximo breakpoint
+
+Use quando:
+
+Já entendeu aquele trecho
+
+Quer “pular” middleware / DI / framework
+
+👉 Pense como: “segue o baile até algo interessante”
+
+⏭️ Step Over (F10) ← SEU MELHOR AMIGO
+
+Executa a linha sem entrar nas funções chamadas
+
+Mesmo que a linha chame:
+
+parse_webhook_payload(payload)
+
+
+ele não entra nela
+
+👉 Use 90% do tempo
+
+📌 Regra:
+
+Se a linha não é sua função ou não é o problema → F10
+
+🔽 Step Into (F11) ← use com parcimônia
+
+Entra dentro da função chamada
+
+Use somente quando:
+
+A função é sua
+
+Você quer ver a transformação do payload
+
+Ex: parse_webhook_payload, engine.run(), manager.get_flow()
+
+🚨 Se usar isso em:
+
+Depends()
+
+Request
+
+Response
+
+FastAPI internals
+
+👉 você cai no esgoto do framework (como aconteceu 😅)
+
+🔼 Step Out (Shift + F11) ← botão de emergência
+
+Sai da função atual
+
+Volta para quem chamou
+
+👉 Use quando:
+
+“PUTZ, não queria ter entrado aqui”
+
+🧠 Regra de ouro para FastAPI
+
+NUNCA dê Step Into em código que não está dentro de src/
+
+Se entrar sem querer:
+
+Shift + F11
+
+ou F5

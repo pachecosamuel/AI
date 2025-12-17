@@ -56,84 +56,49 @@ async def receive_webhook(request: Request):
 
     logger.debug("📥 Payload recebido (resumido): object=%s ", payload.get("object"))
     
-    message = parse_webhook_payload(payload)
-    
+
+    # ─────────────────────────────────────────
+    # ZONA 1 — FILTRO DE EVENTOS
+    # ─────────────────────────────────────────
+    try:
+        message = parse_webhook_payload(payload)
+    except IgnoredEvent:
+        logger.debug("🔕 Evento ignorado (não é mensagem)")
+        return {"status": "ignored"}
+
+    # validações simples (ainda zona 1)
+    if not message.sender_name:
+        return {"status": "ignored"}
+
+    if not message.sender_number:
+        logger.warning("⚠ Ignorado: sender_number vazio")
+        return {"status": "ignored"}
+
+    # ─────────────────────────────────────────
+    # ZONA 2 — PROCESSAMENTO
+    # ─────────────────────────────────────────
     logger.info("=== DEBUG ENGINE START ===")
     logger.info(f"Flows encontrados: {flow_manager.list_flows()}")
     logger.info(f"Texto recebido: {message.message_text}")
     logger.info(f"Engine default_flow: {engine.default_flow}")
     logger.info("=== DEBUG ENGINE END ===")
 
-
+    log_incoming_message(message)
+    
     try:
-        
-        message = parse_webhook_payload(payload)
-        logger.info(f"✔ Parsed message: {message}")
-
-        if not message.sender_name:
-            return {"status": "ignored"}
-
-        if not message.sender_number:
-            logger.warning("⚠ Ignorado: sender_number vazio")
-            return {"status": "ignored"}
-
-        log_incoming_message(message)
-
-        try:
-            # tenta pegar estado e responder via engine
-            engine_response = engine.handle_message(user_id=message.sender_number, text=message.message_text)
-            reply_text = engine_response["reply"]
-
-            await send_whatsapp_message(to=message.sender_number, text=reply_text)
-
-        except Exception as e:
-            # fallback atual
-            reply_text = generate_basic_response(message)
-            await send_whatsapp_message(to=message.sender_number, text=reply_text)
-
-
-
-        return {"status": "success"}
+        engine_response = engine.handle_message(
+            user_id=message.sender_number,
+            text=message.message_text
+        )
+        reply_text = engine_response["reply"]
 
     except Exception as e:
-        return JSONResponse(status_code=200, content={"status": "ignored"})
-    
+        logger.exception("❌ Erro na engine, usando fallback")
+        reply_text = generate_basic_response(message)
 
-# @router.post("/webhook")
-# async def receive_webhook(request: Request):
-#     """Recebe eventos reais enviados pelo WhatsApp Cloud API."""
-    
-#     payload = await request.json()
+    await send_whatsapp_message(
+        to=message.sender_number,
+        text=reply_text
+    )
 
-#     logger.debug("📥 Payload recebido (resumido): object=%s ", payload.get("object"))
-
-#     try:
-        
-#         message = parse_webhook_payload(payload)
-#         logger.info(f"✔ Parsed message: {message}")
-
-#         if not message.sender_name:
-#             return {"status": "ignored"}
-
-#         if not message.sender_number:
-#             logger.warning("⚠ Ignorado: sender_number vazio")
-#             return {"status": "ignored"}
-
-#         log_incoming_message(message)
-
-#         ai_response = generate_basic_response(message)
-#         logger.info(f"💬 Resposta IA: {ai_response}")
-
-#         send_status = await send_whatsapp_message(
-#             to=message.sender_number,
-#             text=ai_response
-#         )
-
-#         logger.info(f"📤 Resultado envio Meta: {send_status}")
-
-#         return {"status": "success"}
-
-#     except Exception as e:
-#         return JSONResponse(status_code=200, content={"status": "ignored"})
-    
-
+    return {"status": "success"}

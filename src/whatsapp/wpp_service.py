@@ -32,22 +32,18 @@ def parse_webhook_payload(payload: Dict[str, Any]) -> NormalizedMessage:
 
         change = entry[0].get("changes", [])
         if not change:
-            raise IgnoredEvent("Payload sem entry message.")
+            raise IgnoredEvent("Payload sem changes.")
 
         value = change[0].get("value", {})
         
         # 🟦 Caso 1 — Evento de STATUS → ignorar
         if "statuses" in value and "messages" not in value:
-            status = value["statuses"][0].get("status")
-            msg_id = value["statuses"][0].get("id")
-            logger.info("🔵 Status %s para mensagem %s", status, msg_id)
             raise IgnoredEvent("Evento de status")
         
         # 🟩 Caso 2 — Evento de mensagem recebida
         messages = value.get("messages", [])
         if not messages:
-            logger.info("🔵 Evento de status recebido → pass")
-            raise IgnoredEvent("Evento de status (sent/delivered/read)")
+            raise IgnoredEvent("Evento de mensagem")
 
         msg = messages[0]  
 
@@ -76,12 +72,6 @@ def parse_webhook_payload(payload: Dict[str, Any]) -> NormalizedMessage:
             message_text=str(message_text),
             message_id=str(msg.get("id") or ""),
             timestamp=str(msg.get("timestamp") or "")
-        )
-
-        logger.info(
-            "💬 Mensagem recebida de %s: %s",
-            normalized.sender_name or normalized.sender_number,
-            normalized.message_text
         )
 
         return normalized
