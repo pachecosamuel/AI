@@ -1,4 +1,5 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from .contracts import ConversationState
 
 
 class InMemoryStateManager:
@@ -7,23 +8,24 @@ class InMemoryStateManager:
 
     def __init__(self):
         # map: user_id -> state dict
-        self._store: Dict[str, Dict[str, Any]] = {}
+        self._states: Dict[str, ConversationState] = {}
 
 
-    def get(self, user_id: str) -> Dict[str, Any]:
-        return self._store.get(user_id, {"flow_id": None, "step_id": None, "meta": {}})
+    def get(self, user_id: str) -> Optional[ConversationState]:
+        return self._states.get(user_id)
 
 
-    def set(self, user_id: str, state: Dict[str, Any]) -> None:
-        self._store[user_id] = state
+    def set(self, state: ConversationState):
+        self._states[state.user_id] = state
 
 
     def update(self, user_id: str, **kwargs) -> None:
-        st = self.get(user_id)
-        st.update(kwargs)
-        self._store[user_id] = st
+        state = self._states.get(user_id)
+        if not state:
+            return
 
+        for key, value in kwargs.items():
+            setattr(state, key, value)
 
-    def clear(self, user_id: str) -> None:
-        if user_id in self._store:
-            del self._store[user_id]
+    def clear(self, user_id: str):
+        self._states.pop(user_id, None)

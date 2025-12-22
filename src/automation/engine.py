@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional
 from .manager import FlowManager
 from .state import InMemoryStateManager
+from .contracts import EngineInput, EngineOutput, ConversationState
 
 class FlowEngine:
     """Engine simples de execução de fluxos baseado em steps definidos em YAML.
@@ -15,42 +16,49 @@ class FlowEngine:
         self,
         flow_manager: FlowManager,
         state_manager: InMemoryStateManager,
-        default_flow: str | None = None
+        default_flow: str 
     ):
         self.flow_manager = flow_manager
         self.state_manager = state_manager
         self.default_flow = default_flow
         
     
-    def start_flow_for_user(self, user_id: str, flow_id: str) -> Dict[str, Any]:
+    def start_flow_for_user(self, user_id: str, flow_id: str):
         flow = self.flow_manager.get_flow(flow_id)
         if not flow:
             raise ValueError("Flow not found")
         
-        # start at first step
         first_step = flow.get("steps", [])[0]
-        state = {"flow_id": flow_id, "step_id": first_step["id"], "meta": {}}
-        self.state_manager.set(user_id, state)
+        
+        state = ConversationState(
+            user_id=user_id,
+            flow=flow_id,
+            step=first_step["id"],
+            meta={}
+        )
+        
+        self.state_manager.set(state)
         return self._render_step(flow, first_step)
     
     
-    def handle_message(self, user_id: str, text: str) -> Dict[str, Any]:
+    def handle_message(self, user_id: str, text: str):
         # 1) get state
         state = self.state_manager.get(user_id)
-        flow_id = state.get("flow_id") or self.default_flow
-        if not flow_id:
+        if not state:
+            return self.start_flow_for_user(user_id, self.default_flow)
+        
+        
+        # 2) get flow
+        flow = self.flow_manager.get_flow(state.flow)
+        if not flow:
             raise ValueError("No flow assigned to user and no default_flow set")
 
 
-        flow = self.flow_manager.get_flow(flow_id)
-        if not flow:
-            raise ValueError("Flow not found")
-
-
-        step = self._find_step(flow, state.get("step_id"))
+        # 3) get step
+        step = self._find_step(flow, state.step)
         if not step:
         # restart
-            return self.start_flow_for_user(user_id, flow_id)
+            return self.start_flow_for_user(user_id, state.flow)
 
 
         # if current step expects a choice mapping
@@ -70,7 +78,9 @@ class FlowEngine:
                 return {"reply": "Erro interno no fluxo.", "end": True}
             
             # update state
-            self.state_manager.update(user_id, flow_id=flow_id, step_id=next_step["id"])
+            new_state = state.next_step(next_step["id"])
+            self.state_manager.set(new_state)
+            
             return self._render_step(flow, next_step)
 
 
@@ -92,3 +102,22 @@ class FlowEngine:
                 return s
     
         return None
+    
+    
+    def handle(self, input: EngineInput) -> EngineOutput:
+        # Ponto único de entrada da engine, recebe um engine input e retorna un engine output
+        
+        # 1° Executa lógica existente
+        result = self.handle_message(
+            user_id=input.user_id,
+            text=input.text
+        )
+
+        state = self.state_manager.get(input.user_id)
+        
+        # 4° retorna resposta formalizada
+        return EngineOutput(
+            reply=result.get("reply", ""),
+            state=state,
+            end_conversation=result.get("end", False)
+        )
